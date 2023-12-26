@@ -1,0 +1,5 @@
+name: 'Breezy Layouts'
+description: 'Layouts based on Tailwind CSS'
+type: module
+package: 'Breezy'
+core_version_requirement: ^9 || ^10

@@ -1,0 +1,24 @@
+breezy-one-column:
+  label: '1 - One column'
+  category: 'Breezy Layouts'
+  class: '\Drupal\breezy_layouts\Plugin\Layout\BreezyLayouts'
+  template: 'templates/breezy-1-column'
+  icon_map:
+    - [main]
+  regions:
+    main:
+      label: Main
+breezy-two-column:
+  label: '2 - Two column'
+  category: 'Breezy Layouts'
+  class: '\Drupal\breezy_layouts\Plugin\Layout\BreezyLayouts'
+  template: 'templates/breezy-2-column'
+  icon_map:
+    - [left, right]
+  regions:
+    left:
+      label: Left
+    right:
+      label: Right
+breezy-three-column:
+  
