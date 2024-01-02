@@ -1,0 +1,9 @@
+breezy_layouts_ui.settings:
+  path: '/admin/config/content/breezy_layouts'
+  defaults:
+    _form: 'Drupal\breezy_layouts_ui\Form\BreezyLayoutsSettingsForm'
+    _title: 'Breezy Layouts settings'
+  requirements:
+    _permission: 'administer breezy layouts'
+  options:
+    _admin_route: TRUE

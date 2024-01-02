@@ -1,0 +1,8 @@
+name: 'Breezy Layouts UI'
+type: module
+description: 'User interface for Breezy Layouts configuration'
+core_version_requirement: ^8.8 || ^9 || ^10
+package: 'Breezy'
+configure: breezy_layouts_ui.settings
+dependencies:
+  - breezy_layouts:breezy_layouts

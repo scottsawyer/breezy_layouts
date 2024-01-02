@@ -21,4 +21,50 @@ breezy-two-column:
     right:
       label: Right
 breezy-three-column:
-  
+  label: '3 - Three column'
+  category: 'Breezy Layouts'
+  class: '\Drupal\breezy_layouts\Plugin\Layout\BreezyLayouts'
+  template: 'templates/breezy-3-column'
+  icon_map:
+    - [left, center, right]
+  regions:
+    left:
+      label: Left
+    center:
+      label: Center
+    right:
+      label: Right
+breezy-four-column:
+  label: '4 - Four column'
+  category: 'Breezy Layouts'
+  class: '\Drupal\breezy_layouts\Plugin\Layout\BreezyLayouts'
+  template: 'templates/breezy-4-column'
+  icon_map:
+    - [leftOuter, leftInner, rightInner, rightOuter]
+  regions:
+    leftOuter:
+      label: 'Left outer'
+    leftInner:
+      label: 'Left inner'
+    rightInner:
+      label: 'Right inner'
+    rightOuter:
+      label: 'Right outer'
+breezy-five-column:
+  label: '5 - Five column'
+  category: 'Breezy Layouts'
+  class: '\Drupal\breezy_layouts\Plugin\Layout\BreezyLayouts'
+  template: 'templates/breezy-5-column'
+  icon_map:
+    - [leftOuter, leftInner, center, rightInner, rightOuter]
+  regions:
+    leftOuter:
+      label: 'Left outer'
+    leftInner:
+      label: 'Left inner'
+    center:
+      label: 'Center'
+    rightInner:
+      label: 'Right inner'
+    rightOuter:
+      label: 'Right outer'

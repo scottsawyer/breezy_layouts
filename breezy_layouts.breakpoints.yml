@@ -1,0 +1,36 @@
+breezy_layouts.mobile:
+  label: Mobile
+  mediaQuery: ''
+  weight: 0
+  multipliers:
+    - '1x'
+breezy_layouts.sm:
+  label: Small
+  mediaQuery: '(min-width: 640px)'
+  weight: 1
+  multipliers:
+    - '1x'
+breezy_layouts.md:
+  label: Medium
+  mediaQuery: '(min-width: 768px)'
+  weight: 2
+  multipliers:
+    - '1x'
+breezy_layouts.lg:
+  label: Large
+  mediaQuery: '(min-width: 1024)'
+  weight: 3
+  multipliers:
+    - '1x'
+breezy_layouts.xl:
+  label: 'Extra large'
+  mediaQuery: '(min-width: 1280px)'
+  weight: 4
+  multipliers:
+    - '1x'
+breezy_layouts.2xl:
+  label: 'Extra extra large'
+  mediaQuery: '(min-width: 1536px)'
+  weight: 5
+  multipliers:
+    - '1x'
