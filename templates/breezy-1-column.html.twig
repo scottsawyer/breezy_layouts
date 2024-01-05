@@ -3,7 +3,7 @@
 {% set offsets = settings.offsets %}
 {% set main_classes = [] %}
 {% for key, val in sizes.main %}
-  {% set main_classes = main_classes|merge([key ~ '-' ~ val]) %}
+  {% set main_classes = main_classes|merge([val]) %}
 {% endfor %}
 {% for key, val in offsets %}
   {% set main_classes = main_classes|merge([key ~ '-' ~ val]) %}

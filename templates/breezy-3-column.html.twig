@@ -1,0 +1,58 @@
+{% set container = settings.wrapper_container %}
+{% set sizes = settings.sizes %}
+{% set offsets = settings.offsets %}
+{% set orders = settings.orders %}
+{% set left_classes = [] %}
+{% for key, val in sizes.left %}
+  {% set left_classes = left_classes|merge([val]) %}
+{% endfor %}
+{% for key, val in offsets.left %}
+  {% set left_classes = left_classes|merge([key ~ '-offset-' ~ val]) %}
+{% endfor %}
+{% for key, val in orders.left %}
+  {% set left_classes = left_classes|merge([val]) %}
+{% endfor %}
+{% set center_classes = [] %}
+{% for key, val in sizes.center %}
+  {% set center_classes = center_classes|merge([val]) %}
+{% endfor %}
+{% for key, val in offsets.center %}
+  {% set center_classes = center_classes|merge([key ~ '-offset-' ~ val]) %}
+{% endfor %}
+{% for key, val in orders.center %}
+  {% set center_classes = center_classes|merge([val]) %}
+{% endfor %}
+{% set right_classes = [] %}
+{% for key, val in sizes.right %}
+  {% set right_classes = right_classes|merge([val]) %}
+{% endfor %}
+{% for key, val in offsets.right %}
+  {% set right_classes = right_classes|merge([key ~ '-offset-' ~ val]) %}
+{% endfor %}
+{% for key, val in orders.right %}
+  {% set right_classes = right_classes|merge([val]) %}
+{% endfor %}
+
+{% if container == TRUE %}
+<div class="container">
+  {% endif %}
+  <div {{ attributes.addClass('flex', settings.wrapper_classes, settings.wrapper_gutters.x, settings.wrapper_gutters.y) }}>
+    {% if content.left %}
+      <div {{ region_attributes.left.addClass(left_classes) }}>
+        {{ content.left }}
+      </div>
+    {% endif %}
+    {% if content.center %}
+      <div {{ region_attributes.center.addClass(center_classes) }}>
+        {{ content.center }}
+      </div>
+    {% endif %}
+    {% if content.right %}
+      <div {{ region_attributes.right.addClass(right_classes) }}>
+        {{ content.right }}
+      </div>
+    {% endif %}
+  </div>
+  {% if container == TRUE %}
+</div>
+{% endif %}

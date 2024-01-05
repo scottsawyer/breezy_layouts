@@ -26,7 +26,7 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
    *
    * @var array
    */
-  protected $configBreakpoints;
+  protected $breakpoints;
 
   /**
    * Layouts configuration.
@@ -61,7 +61,8 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
     $this->breakpointManager = $breakpoint_manager;
     $this->configFactory = $config_factory;
     $this->layoutsConfig = $this->configFactory->get('breezy_layouts.settings');
-    $this->configBreakpoints = $this->getBreakpoints();
+    $this->breakpoints = $this->getBreakpoints();
+
   }
 
   /**
@@ -106,7 +107,7 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
     $form = parent::buildConfigurationForm($form, $form_state);
     $configuration = $this->getConfiguration();
     $regions = $this->getPluginDefinition()->getRegions();
-    $breakpoints = $this->configBreakpoints;
+    $breakpoints = $this->breakpoints;
     $region_orders = [];
     for($i = 0; $i < count($regions); $i++) {
       $region_orders[$i] = $i;
@@ -160,7 +161,7 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
     ];
 
     $form['regions'] = [
-      '#type' => 'fieldset',
+      '#type' => 'container',
       '#title' => $this->t('Region Configuration'),
       '#weight' => 3,
       '#tree' => TRUE,
@@ -185,15 +186,15 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
         ],
       ];
 
-      foreach($breakpoints as $bp_name => $bp_label) {
+      foreach ($breakpoints as $bp_name => $bp_settings) {
         $breakpoint_settings = $this->getBreakpointSettings($bp_name);
 
         $form['regions'][$region_name][$bp_name] = [
           '#type' => 'details',
-          '#title' => $this->t('@label settings', ['@label' => $bp_label]),
+          '#title' => $this->t('@label settings', ['@label' => $bp_settings['label']]),
           '#description' => $this->t('These settings apply to the @region region when viewed on @size sized screens.', [
             '@region' => $region_definition['label'],
-            '@size' => $bp_label,
+            '@size' => $bp_settings['label'],
           ]),
           '#tree' => TRUE,
           '#attributes' => [
@@ -205,10 +206,10 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
         if (count($region_sizes) > 1) {
           $form['regions'][$region_name][$bp_name]['size'] = [
             '#type' => 'select',
-            '#title' => $this->t('@label columns', ['@label' => $bp_label]),
-            '#description' => $this->t('Columns define the width or span of each region.  Choose the number of columns the @region region will span when viewed on @label screens.<p><strong>Note:</strong> Layouts are consist of @columns equal width columns.  The total number of columns for all regions, must total @columns or less.</p>', [
+            '#title' => $this->t('@label columns', ['@label' => $bp_settings['label']]),
+            '#description' => $this->t('Columns define the width or span of each region.  Choose the number of columns the @region region will span when viewed on @label screens.<p><strong>Note:</strong> This layout consists of @columns equal width columns.  The total number of columns for all regions, must total @columns or less.</p>', [
               '@region' => $region_definition['label'],
-              '@label' => $bp_label,
+              '@label' => $bp_settings['label'],
               '@columns' => $breakpoint_settings['columns'],
             ]),
             '#options' => $this->getRegionSizes($bp_name),
@@ -250,30 +251,30 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
           ];
         }
         /**/
-
+        $order_options = $this->getRegionOrderOptions($region_orders, $bp_name);
         if (count($regions) > 1 && count($region_orders)) {
           $form['regions'][$region_name][$bp_name]['order'] = [
             '#type' => 'radios',
-            '#title' => $this->t('@label order', ['@label' => $bp_label]),
+            '#title' => $this->t('@label order', ['@label' => $bp_settings['label']]),
             '#description' => $this->t('Regions with lower values for Order appear before columns with higher values. Choose the order of the @region region when viewed on @label screens.', [
               '@region' => $region_definition['label'],
-              '@label' => $bp_label,
+              '@label' => $bp_settings['label'],
             ]),
-            '#options' => $region_orders,
-            '#default_value' => $configuration['orders'][$region_name][$bp_name] ?? array_search($region_name, array_keys($regions), TRUE),
+            '#options' => $order_options,
+            '#default_value' => $configuration['orders'][$region_name][$bp_name] ?? '',
             '#required' => TRUE,
           ];
         }
         elseif (count($region_orders) == 1) {
           $form['regions'][$region_name][$bp_name]['order'] = [
             '#type' => 'hidden',
-            '#value' => key($region_orders),
+            '#value' => key($order_options),
           ];
         }
         else {
           $form['regions'][$region_name][$bp_name]['order'] = [
             '#type' => 'hidden',
-            '#value' => 0,
+            '#value' => 'order-0',
           ];
         }
 
@@ -286,7 +287,8 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
    * {@inheritdoc}
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-    $breakpoints = $this->configBreakpoints;
+    /*
+    $breakpoints = $this->breakpoints;
     $regions = $form_state->getValue('regions');
     foreach ($regions as $region_name) {
       foreach ($breakpoints as $bp => $breakpoint) {
@@ -296,13 +298,14 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
         }
       }
     }
+    /**/
   }
 
   /**
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    $breakpoints = $this->configBreakpoints;
+    $breakpoints = $this->breakpoints;
 
     $this->configuration['attributes'] = $form_state->getValue('attributes');
     foreach (['wrapper_classes', 'wrapper_container', 'wrapper_gutters'] as $name) {
@@ -311,11 +314,14 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
     }
 
     $regions = $form_state->getValue('regions');
+
     foreach ($regions as $region_name => $region_config) {
-      foreach ($breakpoints as $bp => $breakpoint) {
-        $this->configuration['sizes'][$region_name][$bp] = $region_config[$bp]['size'];
+      $this->configuration['sizes'][$region_name] = [];
+      $this->configuration['orders'][$region_name] = [];
+      foreach ($breakpoints as $bp => $breakpoint_settings) {
+        $this->configuration['sizes'][$region_name][] = $region_config[$bp]['size'];
         //$this->configuration['offsets'][$region_name][$bp] = $region_config[$bp]['offset'];
-        $this->configuration['orders'][$region_name][$bp] = $region_config[$bp]['order'];
+        $this->configuration['orders'][$region_name][] = $region_config[$bp]['order'];
       }
     }
     parent::submitConfigurationForm($form, $form_state);
@@ -344,7 +350,8 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
         continue;
       }
       $key = str_replace($breakpoint_group . '.', '', $bp_name);
-      $available_breakpoints[$key] = $breakpoint_group_breakpoints[$bp_name]->getLabel();
+      $bp_settings['label'] = $breakpoint_group_breakpoints[$bp_name]->getLabel();
+      $available_breakpoints[$key] = $bp_settings;
     }
 
     return $available_breakpoints;
@@ -359,7 +366,7 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
    * @return array
    *   The config settings for the breakpoint.
    */
-  protected function getBreakpointSettings($breakpoint) {
+  protected function getBreakpointSettings(string $breakpoint) {
     $breakpoint_group = $this->layoutsConfig->get('breakpoint_group');
     $config = $this->layoutsConfig->get('breakpoints');
     $settings = [];
@@ -385,12 +392,59 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
    *   An array of region sizes.
    */
   private function getRegionSizes(string $breakpoint) : array {
-    $breakpoint_settings = $this->getBreakpointSettings($breakpoint);
+    $breakpoints = $this->breakpoints;
+    $available_sizes = [];
+
+    if (isset($breakpoints[$breakpoint])) {
+      $breakpoint_settings = $breakpoints[$breakpoint];
+    }
+    else {
+      return [];
+    }
+    //$breakpoint_settings = $this->getBreakpointSettings($breakpoint);
+
 
     if (isset($breakpoint_settings['available_sizes'])) {
-      return $breakpoint_settings['available_sizes'];
+      $available_sizes = [];
+      foreach ($breakpoint_settings['available_sizes'] as $size) {
+        if (!empty($breakpoint_settings['prefix'])) {
+          $key = $breakpoint_settings['prefix'] . ':' . $size;
+          $available_sizes[$key] = $size;
+        }
+        else {
+          $available_sizes[$size] = $size;
+        }
+      }
+      return $available_sizes;
     }
     return [];
+  }
+
+  /**
+   * Get the order options per breakpoint.
+   *
+   * @param array $orders
+   *   The orders (based on number of regions).
+   * @param string $breakpoint
+   *   The current breakpoint.
+   *
+   * @return array
+   *   An array of order options.
+   */
+  protected function getRegionOrderOptions(array $orders, string $breakpoint) : array {
+    $breakpoint_settings = $this->getBreakpointSettings($breakpoint);
+    $region_orders = [];
+    foreach ($orders as $order_key => $order_value) {
+      if (!empty($breakpoint_settings['prefix'])) {
+        $key = $breakpoint_settings['prefix'] . ':order-' . $order_key;
+        $region_orders[$key] = $order_value;
+      }
+      else {
+        $key = 'order-' . $order_key;
+        $region_orders[$key] = $order_value;
+      }
+    }
+    return $region_orders;
   }
 
   /**

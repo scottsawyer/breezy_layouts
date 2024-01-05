@@ -4,24 +4,24 @@
 {% set orders = settings.orders %}
 {% set left_classes = [] %}
 {% for key, val in sizes.left %}
-  {% set left_classes = left_classes|merge([key ~ '-' ~ val]) %}
+  {% set left_classes = left_classes|merge([val]) %}
 {% endfor %}
 {% for key, val in offsets.left %}
   {% set left_classes = left_classes|merge([key ~ '-offset-' ~ val]) %}
 {% endfor %}
 {% for key, val in orders.left %}
-  {% set left_classes = left_classes|merge([key ~ '-order-' ~ val]) %}
+  {% set left_classes = left_classes|merge([val]) %}
 {% endfor %}
 
 {% set right_classes = [] %}
 {% for key, val in sizes.right %}
-  {% set right_classes = right_classes|merge([key ~ '-' ~ val]) %}
+  {% set right_classes = right_classes|merge([val]) %}
 {% endfor %}
 {% for key, val in offsets.right %}
   {% set right_classes = right_classes|merge([key ~ '-offset-' ~ val]) %}
 {% endfor %}
 {% for key, val in orders.right %}
-  {% set right_classes = right_classes|merge([key ~ '-order-' ~ val]) %}
+  {% set right_classes = right_classes|merge([val]) %}
 {% endfor %}
 
 {% if container == TRUE %}
