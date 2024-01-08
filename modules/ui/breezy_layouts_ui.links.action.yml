@@ -1,0 +1,5 @@
+entity.breezy_layouts_ui.add_form:
+  route_name: entity.breezy_layouts_variant.add_form
+  title: 'Add variant'
+  appears_on:
+    - entity.breezy_layouts_variant.collection

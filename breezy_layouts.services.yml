@@ -1,0 +1,6 @@
+services:
+  # Variant plugin manager.
+  plugin.manager.breezy_layouts.variant:
+    class: Drupal\breezy_layouts\Service\BreezyLayoutsVariantPluginManager
+    parent: default_plugin_manager
+    arguments: ['@plugin.manager.core.layout']

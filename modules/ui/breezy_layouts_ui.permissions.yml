@@ -1,4 +1,9 @@
 'administer breezy layouts':
-  title: Administer Breezy Layouts
-  description: Configure Breezy Layouts settings
+  title: 'Administer Breezy Layouts'
+  description: 'Configure Breezy Layouts settings'
   'restrict access': TRUE
+
+'administer breezy layout variants':
+  title: 'Administer Breezy Layouts Variants'
+  'restrict access': TRUE
+
