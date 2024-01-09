@@ -86,7 +86,7 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
-
+    $input = $form_state->getUserInput();
     $plugin_form_wrapper = 'plugin-form-wrapper';
 
     /** @var \Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface $variant */
@@ -109,6 +109,7 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
     ];
 
     $plugin_id = $variant->getPluginId();
+    $plugin_configuration = $input['plugin_configuration'] ?? $variant->getPluginConfiguration();
 
     if (!$plugin_id) {
       $form['plugin_id'] = [
@@ -127,38 +128,44 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
     }
     else {
       $form_state->set('plugin_id', $plugin_id);
-      $form['plugin_id'] = [
+      $form_state->setValue('plugin_id', $plugin_id);
+      $form['plugin_id_display'] = [
         '#type' => 'item',
         '#title' => $this->t('@layout', ['@layout' => $plugin_id]),
       ];
+      $form['plugin_id'] = [
+        '#type' => 'hidden',
+        '#value' => $plugin_id,
+      ];
+
     }
 
     if ($form_state->getValue('plugin_id')) {
       $plugin_id = $form_state->getValue('plugin_id');
       $form_state->set('plugin_id', $plugin_id);
     }
-    $form['plugin_configuration'] = [
-      '#type' => 'container',
-      '#attributes' => [
-        'id' => $plugin_form_wrapper,
-      ],
+
+    $form['status'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enabled'),
+      '#default_value' => $variant->get('status') ?? '',
     ];
 
     if (!empty($plugin_id)) {
       /** @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface $plugin */
-      $plugin = $this->variantPluginManager->createInstance($plugin_id);
+      $plugin = $this->variantPluginManager->createInstance($plugin_id, $plugin_configuration);
       $form['layout'] = [
         '#type' => 'hidden',
         '#value' => $plugin->getLayoutId(),
       ];
-      $plugin_configuration = [
+      $plugin_form = [
         '#type' => 'container',
         '#attributes' => [
           'id' => $plugin_form_wrapper,
         ],
         '#tree' => TRUE,
       ];
-      $form['plugin_configuration'] = $plugin->buildConfigurationForm($plugin_configuration, $form_state);
+      $form['plugin_configuration'] = $plugin->buildConfigurationForm($plugin_form, $form_state);
     }
     return $form;
   }
@@ -178,6 +185,7 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
    * {@inheritdoc}
    */
   protected function copyFormValuesToEntity(EntityInterface $entity, array $form, FormStateInterface $form_state) {
+
     $values = $form_state->getValues();
     if ($this->entity instanceof EntityWithPluginCollectionInterface) {
       // Do not manually update values represented by plugin collections.
@@ -185,14 +193,20 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
     }
 
     $entity
-      ->set('id', $values['id'])
       ->set('label', $values['label'])
       ->set('status', $values['status'])
-      ->set('label', $values['layout'])
       ->set('plugin_id', $values['plugin_id']);
 
-    if (isset($values['plugin_configuration']) && !empty($values['plugin_configuration'])) {
-      $entity->set('plugin_configuration', $this->getPluginConfiguration($values['plugin_id'], $form['plugin_configuration'], $form_state));
+    if ($plugin_id = $values['plugin_id']) {
+      $layout = $this->variantPluginManager->getLayout($plugin_id);
+      if ($layout) {
+        $entity->set('layout', $layout);
+      }
+    }
+
+    if (isset($values['plugin_configuration']) && !empty($values['plugin_configuration']) && !empty($values['plugin_id'])) {
+      $plugin_configuration = $this->getPluginConfiguration($values['plugin_id'], $form['plugin_configuration'], $form_state);
+      $entity->set('plugin_configuration', $plugin_configuration);
     }
   }
 
@@ -212,12 +226,14 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   protected function getPluginConfiguration(string $pluginId, array $formField, FormStateInterface $formState) : array {
-
+    $logger = \Drupal::logger('getPluginConfiguration');
     /** @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface $plugin */
     $plugin = $this->variantPluginManager->createInstance($pluginId);
 
     $plugin->submitConfigurationForm($formField, $formState);
+    $plugin_configuration = $plugin->getConfiguration();
 
+    $logger->notice('Plugin configuration <pre>' . print_r($plugin_configuration, TRUE) . '</pre>');
     return $plugin->getConfiguration();
   }
 

@@ -74,11 +74,7 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
-    $form_wrapper = 'variant-form-wrapper';
     $breakpoints_wrapper_id = 'breakpoints-wrapper';
-
-    $form['#tree'] = TRUE;
-    $form['#attributes']['id'] = $form_wrapper;
 
     $form['container'] = [
       '#type' => 'fieldset',
@@ -100,10 +96,6 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
       '#default_value' => $this->configuration['container']['allow_overrides'] ?? FALSE,
     ];
 
-
-
-
-
     $breakpoint_group = FALSE;
 
     if ($this->configuration['breakpoint_group']) {
@@ -119,7 +111,7 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
       '#required' => TRUE,
       '#empty_option'=>$this->t('- Select -'),
       '#ajax' => [
-        'callback' => '::changeBreakpointGroup',
+        'callback' => [$this, 'changeBreakpointGroup'],
         'wrapper' => $breakpoints_wrapper_id,
       ],
     ];
@@ -154,16 +146,16 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
         $form['breakpoints'][$breakpoint_name]['enabled'] = [
           '#type' => 'checkbox',
           '#title' => $this->t('Enable'),
-          '#default_value' => $breakpoints[$breakpoint_name]['enabled'] ?? FALSE,
+          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['enabled'] ?? FALSE,
         ];
 
         $form['breakpoints'][$breakpoint_name]['prefix'] = [
           '#type' => 'textfield',
           '#title' => $this->t('Breakpoint prefix'),
-          '#default_value' => $breakpoints[$breakpoint_name]['prefix'] ?? '',
+          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['prefix'] ?? '',
           '#states' => [
             'visible' => [
-              'input[name="breakpoints[' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
+              'input[name="plugin_configuration[breakpoints][' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
             ],
           ],
         ];
@@ -171,12 +163,92 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
         $form['breakpoints'][$breakpoint_name]['wrapper'] = [
           '#type' => 'fieldset',
           '#title' => $this->t('Wrapper'),
+          '#states' => [
+            'visible' => [
+              'input[name="plugin_configuration[breakpoints][' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
+            ],
+          ],
+        ];
+
+        /**
+        $form['breakpoints'][$breakpoint_name]['wrapper']['classes'] = [
+
+        ];
+        /**/
+
+        $form['breakpoints'][$breakpoint_name]['gap'] = [
+          '#type' => 'select',
+          '#title' => $this->t('Gap'),
+          '#description' => $this->t('Space between columns.'),
+          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['gap'] ?? 'gap-0',
+          '#options' => [
+            'gap-0' => '0px',
+            'gap-px' => '1px',
+            'gap-0.5' => '2px',
+            'gap-1' => '4px',
+            'gap-2' => '8px',
+            'gap-2.5' => '10px',
+            'gap-3' => '12px',
+            'gap-3.5' => '14px',
+            'gap-4' => '16px',
+            'gap-5' => '20px',
+            'gap-6' => '24px',
+            'gap-7' => '28px',
+            'gap-8' => '32px',
+            'gap-9' => '36px',
+            'gap-10' => '40px',
+            'gap-11' => '44px',
+            'gap-12' => '48px',
+          ],
+          '#states' => [
+            'visible' => [
+              'input[name="plugin_configuration[breakpoints][' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
+            ],
+          ],
+        ];
+
+        $form['breakpoints'][$breakpoint_name]['columns'] = [
+          '#type' => 'select',
+          '#title' => $this->t('Columns'),
+          '#description' => $this->t('Total number of columns available to a region.'),
+          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['columns'] ?? '',
+          '#empty_option'=>$this->t('- Select -'),
+          '#options' => [
+            1 => '1',
+            2 => '2',
+            3 => '3',
+            4 => '4',
+            5 => '5',
+            6 => '6',
+            12 => '12',
+          ],
+          '#states' => [
+            'visible' => [
+              'input[name="plugin_configuration[breakpoints][' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
+            ],
+          ],
+          '#ajax' => [
+            'callback' => [$this, 'columnsCallback'],
+            'event' => 'change',
+            'wrapper' => $breakpoints_wrapper_id,
+          ]
         ];
 
       }
     }
 
-        return $form;
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    parent::submitConfigurationForm($form, $form_state);
+    $values = $form_state->getValue('plugin_configuration');
+    $this->configuration['breakpoint_group'] = $values['breakpoint_group'];
+    $this->configuration['container'] = $values['container'];
+    $this->configuration['breakpoints'] = $values['breakpoints'];
   }
 
   /**
@@ -188,10 +260,24 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
    * @return array
    */
   public function changeBreakpointGroup(array &$form, FormStateInterface $form_state) {
-    $breakpoint_group = $form_state->getValue('breakpoint_group');
+    $breakpoint_group = $form_state->getValue(['plugin_configuration', 'breakpoint_group']);
     $form_state->set('breakpoint_group', $breakpoint_group);
     $form_state->setRebuild();
-    return $form['breakpoints'];
+    return $form['plugin_configuration']['breakpoints'];
+  }
+
+  /**
+   * Callback for columns selection.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form_state.
+   *
+   * @return array
+   */
+  public function columnsCallback(array &$form, FormStateInterface $form_state) {
+    return $form['plugin_configuration']['breakpoints'];
   }
 
 }

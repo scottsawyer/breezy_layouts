@@ -41,7 +41,7 @@ use Drupal\Core\Config\Entity\ConfigEntityBase;
  *     "status",
  *     "layout",
  *     "plugin_id",
- *     "plugin_definition",
+ *     "plugin_configuration",
  *   },
  *   links = {
  *     "collection" = "/admin/config/content/breezy-layouts/variants",

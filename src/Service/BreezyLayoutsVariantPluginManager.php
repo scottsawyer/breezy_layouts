@@ -75,4 +75,12 @@ class BreezyLayoutsVariantPluginManager extends DefaultPluginManager implements 
     return $definitions;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getLayout(string $plugin_id): string {
+    $definition = $this->getDefinition($plugin_id);
+    return $definition['layout'];
+  }
+
 }

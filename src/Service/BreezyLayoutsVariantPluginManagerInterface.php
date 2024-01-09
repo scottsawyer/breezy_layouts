@@ -26,4 +26,15 @@ interface BreezyLayoutsVariantPluginManagerInterface {
    */
   public function getValidDefinitions() : array;
 
+  /**
+   * Get layout.
+   *
+   * @param string $plugin_id
+   *   The plugin id.
+   *
+   * @return string
+   *   The plugin layout definition.
+   */
+  public function getLayout(string $plugin_id) : string;
+
 }
