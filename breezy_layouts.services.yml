@@ -4,3 +4,6 @@ services:
     class: Drupal\breezy_layouts\Service\BreezyLayoutsVariantPluginManager
     parent: default_plugin_manager
     arguments: ['@plugin.manager.core.layout']
+
+  breezy_layouts.tailwind_classes:
+    class: Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassService

@@ -2,6 +2,7 @@
 
 namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Variant;
 
+use Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\breakpoint\BreakpointManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -26,6 +27,13 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
   protected $breakpointManager;
 
   /**
+   * Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassesServiceInterface definition.
+   *
+   * @var \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface
+   */
+  protected $tailwindClasses;
+
+  /**
    * Constructs a new BreezyLayoutsOneColumn plugin object.
    *
    * @param array $configuration
@@ -36,11 +44,14 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
    *   The plugin definition.
    * @param \Drupal\breakpoint\BreakpointManagerInterface $breakpoint_manager
    *   The breakpoint manager service.
+   * @param \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface $tailwind_classes
+   *   The tailwind classes service.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, BreakpointManagerInterface $breakpoint_manager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, BreakpointManagerInterface $breakpoint_manager, BreezyLayoutsTailwindClassServiceInterface $tailwind_classes) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->configuration += $this->defaultConfiguration();
     $this->breakpointManager = $breakpoint_manager;
+    $this->tailwindClasses = $tailwind_classes;
   }
 
   /**
@@ -49,11 +60,14 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     /** @var \Drupal\breakpoint\BreakpointManagerInterface $breakpoint_manager */
     $breakpoint_manager = $container->get('breakpoint.manager');
+    /** @var \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface $tailwind_classes */
+    $tailwind_classes = $container->get('breezy_layouts.tailwind_classes');
     return new static(
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $breakpoint_manager
+      $breakpoint_manager,
+      $tailwind_classes
     );
   }
 
@@ -170,36 +184,26 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
           ],
         ];
 
-        /**
-        $form['breakpoints'][$breakpoint_name]['wrapper']['classes'] = [
-
-        ];
-        /**/
-
-        $form['breakpoints'][$breakpoint_name]['gap'] = [
+        $form['breakpoints'][$breakpoint_name]['wrapper']['gap'] = [
           '#type' => 'select',
           '#title' => $this->t('Gap'),
           '#description' => $this->t('Space between columns.'),
-          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['gap'] ?? 'gap-0',
-          '#options' => [
-            'gap-0' => '0px',
-            'gap-px' => '1px',
-            'gap-0.5' => '2px',
-            'gap-1' => '4px',
-            'gap-2' => '8px',
-            'gap-2.5' => '10px',
-            'gap-3' => '12px',
-            'gap-3.5' => '14px',
-            'gap-4' => '16px',
-            'gap-5' => '20px',
-            'gap-6' => '24px',
-            'gap-7' => '28px',
-            'gap-8' => '32px',
-            'gap-9' => '36px',
-            'gap-10' => '40px',
-            'gap-11' => '44px',
-            'gap-12' => '48px',
-          ],
+          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['wrapper']['gap'] ?? 'gap-0',
+          '#options' => $this->tailwindClasses->getClassOptions('gap'),
+        ];
+
+
+
+        $form['breakpoints'][$breakpoint_name]['wrapper']['additional_classes'] = [
+          '#type' => 'textfield',
+          '#title' => $this->t('Additional wrapper classes'),
+          '#description' => $this->t('Enter additional classes that will be added to the flex wrapper.'),
+          '#default_value' => $this->configuration['breakpoints'][' . $breakpoint_name . ']['wrapper']['classes'] ?? '',
+        ];
+
+        $form['breakpoints'][$breakpoint_name]['main'] = [
+          '#type' => 'fieldset',
+          '#title' => $this->t('Main region'),
           '#states' => [
             'visible' => [
               'input[name="plugin_configuration[breakpoints][' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
@@ -207,35 +211,41 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
           ],
         ];
 
-        $form['breakpoints'][$breakpoint_name]['columns'] = [
-          '#type' => 'select',
-          '#title' => $this->t('Columns'),
-          '#description' => $this->t('Total number of columns available to a region.'),
-          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['columns'] ?? '',
-          '#empty_option'=>$this->t('- Select -'),
-          '#options' => [
-            1 => '1',
-            2 => '2',
-            3 => '3',
-            4 => '4',
-            5 => '5',
-            6 => '6',
-            12 => '12',
-          ],
-          '#states' => [
-            'visible' => [
-              'input[name="plugin_configuration[breakpoints][' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
-            ],
-          ],
-          '#ajax' => [
-            'callback' => [$this, 'columnsCallback'],
-            'event' => 'change',
-            'wrapper' => $breakpoints_wrapper_id,
-          ]
+        $form['breakpoints'][$breakpoint_name]['main']['additional_classes'] = [
+          '#type' => 'textfield',
+          '#title' => $this->t('Additional classes'),
+          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['main']['classes'] ?? '',
         ];
 
       }
     }
+
+    $form['overrides'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Overrides'),
+      '#description' => $this->t('Allow editors to override configured options.'),
+    ];
+    $form['overrides']['enabled'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enable'),
+    ];
+    $form['overrides']['parts'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Layout parts to allow overrides'),
+      '#options' => [
+        'container' => $this->t('Container'),
+        'wrapper' => $this->t('Wrapper'),
+        'regions' => $this->t('Region'),
+      ],
+      '#default_value' => $this->configuration['overrides']['parts'] ?? '',
+      '#states' => [
+        'visible' => [
+          'input[name="plugin_configuration[overrides][enabled]"]' => ['checked' => TRUE],
+        ],
+      ],
+    ];
+
+
 
     return $form;
   }
@@ -278,6 +288,23 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
    */
   public function columnsCallback(array &$form, FormStateInterface $form_state) {
     return $form['plugin_configuration']['breakpoints'];
+  }
+
+  /**
+   * Maps the parent child relationship of css properties.
+   *
+   * Certain CSS properties only make sense at certain levels (parent / child).
+   *
+   * @param string|null $level
+   *   The level of the parent child tree.
+   *
+   * @return array
+   *   An array of properties that apply at the provided level.
+   */
+  protected function cssPropertyMap($level = NULL) : array {
+    $properties = [];
+
+    return $properties;
   }
 
 }
