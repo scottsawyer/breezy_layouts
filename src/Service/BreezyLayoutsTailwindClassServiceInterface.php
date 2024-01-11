@@ -8,6 +8,14 @@ namespace Drupal\breezy_layouts\Service;
 interface BreezyLayoutsTailwindClassServiceInterface {
 
   /**
+   * CSS property map.
+   *
+   * @var array
+   *   An array of properties.
+   */
+  public function getPropertyMap() : array;
+
+  /**
    * Get margin classes.
    *
    * @return string[]

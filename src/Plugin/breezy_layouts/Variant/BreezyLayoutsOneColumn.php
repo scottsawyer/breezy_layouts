@@ -13,8 +13,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @BreezyLayoutsVariantPlugin(
  *   id = "breezy_one_column",
  *   label = @Translation("Breezy one column"),
- *   description = @Translation("Provides a variant plugin for Breezy one column layout"),
- *   layout = "breezy-one-column",
+ *   description = @Translation("Provides a variant plugin for Breezy one
+ *   column layout"), layout = "breezy-one-column",
  * )
  */
 class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
@@ -27,7 +27,8 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
   protected $breakpointManager;
 
   /**
-   * Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassesServiceInterface definition.
+   * Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassesServiceInterface
+   * definition.
    *
    * @var \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface
    */
@@ -80,6 +81,7 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
       'container' => [],
       'wrapper' => [],
       'main' => [],
+      'overrides' => [],
       ] + parent::defaultConfiguration();
   }
 
@@ -192,8 +194,6 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
           '#options' => $this->tailwindClasses->getClassOptions('gap'),
         ];
 
-
-
         $form['breakpoints'][$breakpoint_name]['wrapper']['additional_classes'] = [
           '#type' => 'textfield',
           '#title' => $this->t('Additional wrapper classes'),
@@ -229,21 +229,110 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
       '#type' => 'checkbox',
       '#title' => $this->t('Enable'),
     ];
-    $form['overrides']['parts'] = [
+
+    $overrides_wrapper_id = 'overrides-wrapper';
+
+    $component_options = [
+      'container' => $this->t('Container'),
+      'wrapper' => $this->t('Wrapper'),
+      'regions' => $this->t('Region'),
+    ];
+
+    $form['overrides']['override_components'] = [
       '#type' => 'checkboxes',
       '#title' => $this->t('Layout parts to allow overrides'),
-      '#options' => [
-        'container' => $this->t('Container'),
-        'wrapper' => $this->t('Wrapper'),
-        'regions' => $this->t('Region'),
-      ],
-      '#default_value' => $this->configuration['overrides']['parts'] ?? '',
+      '#options' => $component_options,
+      '#default_value' => $this->configuration['overrides']['override_components'] ?? '',
       '#states' => [
         'visible' => [
           'input[name="plugin_configuration[overrides][enabled]"]' => ['checked' => TRUE],
         ],
       ],
+      '#ajax' => [
+        'callback' => [$this, 'changeOverrides'],
+        'wrapper' => $overrides_wrapper_id,
+      ],
     ];
+
+    $overrides = FALSE;
+
+    if (isset($this->configuration['overrides']['override_components'])) {
+      $overrides = $this->configuration['overrides']['override_components'];
+      $form_state->set('overrides', $overrides);
+    }
+
+    $form['overrides']['components'] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'id' => $overrides_wrapper_id,
+      ],
+    ];
+
+    $overrides = $form_state->get('overrides');
+    if ($form_state->getValue(['overrides', 'components'])) {
+      $overrides = $form_state->getValue(['overrides', 'components']);
+    }
+
+    if (!empty($overrides)) {
+
+      $override_property_options = $this->cssPropertyMap();
+      foreach ($overrides as $override_key => $override_value) {
+        if (empty($override_value)) {
+          continue;
+        }
+        $form['overrides']['components'][$override_key] = [
+          '#type' => 'details',
+          '#title' => $component_options[$override_key],
+        ];
+        foreach ($override_property_options as $property_key => $property_option) {
+          $num_lines_key = ['components', $override_key, $property_key, 'num_lines'];
+          $num_lines = $form_state->get($num_lines_key);
+          if ($num_lines === NULL) {
+            $num_lines = 1;
+            $form_state->set($num_lines_key, $num_lines);
+          }
+          $removed_lines_key = ['components', $override_key, $property_key, 'removed_lines'];
+          $removed_lines = $form_state->get($num_lines_key);
+          if ($removed_lines == NULL || !is_array($removed_lines)) {
+            $removed_lines = [];
+            $form_state->set($removed_lines_key, $removed_lines);
+          }
+          $form['overrides']['components'][$override_key][$property_key] = [
+            '#type' => 'table',
+            '#title' => $property_option['label'],
+            '#header' => [$property_option['label'], 'Option label', 'Actions'],
+            '#num_lines' => $num_lines,
+            '#sort' => TRUE,
+          ];
+
+          for ($i = 0; $i < $num_lines; $i++) {
+            if (in_array($i, $removed_lines)) {
+              continue;
+            }
+            $this->tailwindClasses->getClassOptions($property_option['css_property']);
+            $form['overrides']['components'][$override_key][$property_key][$i]['value'] = [
+              '#type' => 'select',
+              '#title' => $this->t('Value'),
+              '#empty_option' => $this->t('- Select -'),
+              '#options' => $this->tailwindClasses->getClassOptions($property_option['css_property']),
+              '#default_value' => '',
+            ];
+            $form['overrides']['components'][$override_key][$property_key][$i]['label'] = [
+              '#type' => 'textfield',
+              '#title' => $this->t('Label'),
+              '#default_value' => '',
+            ];
+            $form['overrides']['components'][$override_key][$property_key][$i]['operation'] = [
+              '#type' => 'submit',
+              '#title' => $this->t('Remove'),
+            ];
+          }
+
+        }
+      }
+    }
+
+
 
 
 
@@ -291,6 +380,22 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
   }
 
   /**
+   * Callback for components selection.
+   *
+   * @param array $form
+   *   The form array
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   *
+   * @return array;
+   */
+  public function changeOverrides(array &$form, FormStateInterface $form_state) {
+    $components = $form_state->getValue(['plugin_configuration', 'overrides', 'override_components']);
+    $form_state->set('overrides', $components);
+    return $form['plugin_configuration']['overrides']['components'];
+  }
+
+  /**
    * Maps the parent child relationship of css properties.
    *
    * Certain CSS properties only make sense at certain levels (parent / child).
@@ -302,7 +407,8 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
    *   An array of properties that apply at the provided level.
    */
   protected function cssPropertyMap($level = NULL) : array {
-    $properties = [];
+    $properties = $this->tailwindClasses->getPropertyMap();
+
 
     return $properties;
   }

@@ -14,16 +14,48 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
    *
    * @var array
    */
-  protected function getPropertyMap() {
+  public function getPropertyMap() : array {
     $property_map = [
-      'padding' => 'Padding',
-      'margin' => 'Margin',
-      'flex-direction' => 'Flex direction',
-      'flex-basis' => 'Flex basis',
-      'gap' => 'Gap',
-      'order' => 'Order',
-      'justify-content' => 'Justify content',
-      'align-items' => 'Align items',
+      'padding' => [
+        'label' => 'Padding',
+        'css_property' => 'padding',
+        'method' => 'getPadding',
+      ],
+      'margin' => [
+        'label' => 'Margin',
+        'css_property' => 'margin',
+        'method' => 'getPadding',
+      ],
+      'flex_direction' => [
+        'label' => 'Flex direction',
+        'css_property' => 'flex-direction',
+        'method' => 'getFlexDirection',
+      ],
+      'flex_basis' => [
+        'label' => 'Flex basis',
+        'css_property' => 'flex-basis',
+        'method' => 'getFlexBasis',
+      ],
+      'gap' => [
+        'label' => 'Gap',
+        'css_property' => 'gap',
+        'method' => 'getGap',
+      ],
+      'order' => [
+        'label' => 'Order',
+        'css_property' => 'order',
+        'method' => 'getOrder',
+      ],
+      'justify_content' => [
+        'label' => 'Justify content',
+        'css_property' => 'justify-content',
+        'method' => 'getJustifyContent',
+      ],
+      'align_items' => [
+        'label' => 'Align items',
+        'css_property' => 'align-items',
+        'method' => 'getAlignItems',
+      ],
     ];
     return $property_map;
   }
@@ -180,32 +212,17 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
   public function getClassOptions(string $property) : array {
     $class_options = [];
     $classes = [];
-    switch ($property) {
-      case 'order':
-        $classes = $this->getOrder();
-        break;
-      case 'margin':
-        $classes = $this->getMargin();
-        break;
-      case 'padding':
-        $classes = $this->getPadding();
-        break;
-      case 'justify-content':
-        $classes = $this->getJustifyContent();
-        break;
-      case 'align-items':
-        $classes = $this->getAlignItems();
-        break;
-      case 'flex-basis':
-        $classes = $this->getFlexBasis();
-        break;
-      case 'gap':
-        $classes = $this->getGap();
-        break;
-      case 'flex-direction':
-        $classes = $this->getFlexDirection();
-        break;
+    $map = $this->getPropertyMap();
+    $selected_map = array_filter( $map, function ($a) use($property) {
+      return $a['css_property'] == $property;
+    });
+
+    if (!empty($selected_map)) {
+      $properties = reset($selected_map);
+      $method = $properties['method'];
+      $classes = $this->$method();
     }
+
     if (!empty($classes)) {
       foreach($classes as $class) {
         $class_options[$class] = $class;
@@ -218,9 +235,12 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
    * {@inheritdoc}
    */
   public function getPropertyOptions() : array {
-    $property_options = $this->getPropertyMap();
-
-    return $property_options;
+    $map = $this->getPropertyMap();
+    $options = [];
+    foreach ($map as $key => $properties) {
+      $options[$key] = $properties['label'];
+    }
+    return $options;
   }
 
 }
