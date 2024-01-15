@@ -5,6 +5,7 @@ namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Variant;
 use Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\breakpoint\BreakpointManagerInterface;
+use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -13,8 +14,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @BreezyLayoutsVariantPlugin(
  *   id = "breezy_one_column",
  *   label = @Translation("Breezy one column"),
- *   description = @Translation("Provides a variant plugin for Breezy one
- *   column layout"), layout = "breezy-one-column",
+ *   description = @Translation("Provides a variant plugin for Breezy one column layout"),
+ *   layout = "breezy-one-column",
  * )
  */
 class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
@@ -90,11 +91,13 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
+    $variant = $form_state->get('variant');
     $breakpoints_wrapper_id = 'breakpoints-wrapper';
 
     $form['container'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Container'),
+      '#tree' => TRUE,
     ];
     $form['container']['enabled'] = [
       '#type' => 'checkbox',
@@ -152,7 +155,7 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
         $breakpoint_name = str_replace('.', '__', $breakpoint_name);
         $breakpoint_wrapper_id = 'breakpoints-' . $breakpoint_name;
         $form['breakpoints'][$breakpoint_name] = [
-          '#type' => 'fieldset',
+          '#type' => 'details',
           '#title' => $breakpoint->getLabel(),
           '#tree' => TRUE,
           '#prefix' => '<div id="' . $breakpoint_wrapper_id . '">',
@@ -183,6 +186,42 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
             'visible' => [
               'input[name="plugin_configuration[breakpoints][' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
             ],
+          ],
+        ];
+
+        // Display properties.
+        $form['breakpoints'][$breakpoint_name]['wrapper']['properties'] = [
+          '#type' => 'table',
+          '#sort' => TRUE,
+          '#header' => [$this->t('Sort'), $this->t('Property'), $this->t('Operations')],
+          '#num_lines' => '',
+          '#tabledrag' => [
+            [
+              'action' => 'match',
+              'relationship' => 'parent',
+              'group' => 'row-parent-key',
+              'source' => 'row-key',
+              'hidden' => TRUE,
+              'limit' => FALSE,
+            ],
+            'action' => 'order',
+            'relationship' => 'sibling',
+            'group' => 'row-weight',
+          ],
+        ];
+        $dialog_options = [
+          'width' => 800,
+        ];
+
+        $parent_key = 'plugin_configuration[breakpoints][' . $breakpoint_name . '][wrapper]';
+        $form['breakpoints'][$breakpoint_name]['wrapper']['add_property'] = [
+          '#type' => 'link',
+          '#title' => $this->t('Add property'),
+          '#url' => Url::fromRoute('breezy_layouts_ui.property_form', ['variant', $variant->id()], ['parent' => $parent_key]),
+          '#attributes' => [
+            'class' => ['use-ajax'],
+            'data-dialog-type' => 'modal',
+            'data-dialog-options' => json_encode($dialog_options),
           ],
         ];
 
@@ -324,7 +363,9 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
             ];
             $form['overrides']['components'][$override_key][$property_key][$i]['operation'] = [
               '#type' => 'submit',
-              '#title' => $this->t('Remove'),
+              '#value' => $this->t('Remove'),
+              '#name' => implode('-', $removed_lines_key),
+
             ];
           }
 

@@ -15,3 +15,19 @@ entity.breezy_layouts_variant.add_form:
     _title: 'Add variant'
   requirements:
     _entity_create_access: 'breezy_layouts_variant'
+
+breezy_layouts_ui.property_form:
+  path: '/admin/config/content/breezy-layouts/variant/{variant}/property/add'
+  defaults:
+    _form: 'Drupal\breezy_layouts_ui\Form\BreezyLayoutsAddPropertyForm'
+    _title: 'Add property'
+  requirements:
+    _permission: 'administer breezy layouts'
+  options:
+    _admin_route: TRUE
+
+entity.breezy_layouts_ui.element.edit_form:
+  path: 'admin/config/content/breezy-layouts/variant/{variant}/element/{key}/edit'
+  defaults:
+    _form: 'Drupal\breezy_layouts_ui\Form\BreezyLayoutsElementForm'
+    _title: 'Edit element'

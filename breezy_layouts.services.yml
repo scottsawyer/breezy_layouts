@@ -7,3 +7,8 @@ services:
 
   breezy_layouts.tailwind_classes:
     class: Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassService
+
+  # Element plugin manager.
+  plugin.manager.breezy_layouts.element:
+    class: Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManager
+    parent: default_plugin_manager

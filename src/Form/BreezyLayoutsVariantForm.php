@@ -91,6 +91,7 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
 
     /** @var \Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface $variant */
     $variant = $this->entity;
+    $form_state->set('variant', $variant);
 
     $form['label'] = [
       '#type' => 'textfield',
