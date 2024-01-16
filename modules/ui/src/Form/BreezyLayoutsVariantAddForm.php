@@ -2,6 +2,7 @@
 
 namespace Drupal\breezy_layouts_ui\Form;
 
+use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -92,7 +93,6 @@ class BreezyLayoutsVariantAddForm extends FormBase {
       '#value' => $this->t('Create'),
       '#button_type' => 'primary',
     ];
-
 
     return $form;
   }

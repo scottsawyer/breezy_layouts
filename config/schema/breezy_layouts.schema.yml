@@ -34,3 +34,19 @@ breezy_layouts.variant_plugin_configuration:
     breakpoint_group:
       type: string
       label: 'Breakpoint group'
+
+breezy_layouts.breezy_layouts_element.plugin.*:
+  type: breezy_layouts.element_plugin_configuration
+
+breezy_layouts.element_plugin_configuration:
+  type: mapping
+  mapping:
+    property:
+      type: string
+      label: 'CSS Class property'
+    element_type:
+      type: string
+      label: 'Element type'
+    weight:
+      type: integer
+      label: 'Weight'

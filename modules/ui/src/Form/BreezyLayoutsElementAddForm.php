@@ -2,78 +2,33 @@
 
 namespace Drupal\breezy_layouts_ui\Form;
 
+use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
+use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
 use Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Form\FormBase;
 use Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Add property form.
  */
-class BreezyLayoutsAddPropertyForm extends FormBase {
+class BreezyLayoutsElementAddForm extends BreezyLayoutsElementFormBase {
 
-  /**
-   * Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface
-   * definition.
-   *
-   * @var \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface
-   */
-  protected $tailwindClassService;
-
-  /**
-   * Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface definition.
-   *
-   * @var \Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface
-   */
-  protected $elementManager;
-
-  /**
-   * The Varient form element parent key.
-   *
-   * @var string
-   */
-  protected $parentKey;
-
-
-  /**
-   * Constructs a new BreezyLayoutsAddPropertyForm.php
-   *
-   * @param \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface $tailwind_classes
-   *   Tailwind classes.
-   * @param \Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface $element_manager
-   *   The element plugin manager.
-   */
-  public function __construct(BreezyLayoutsTailwindClassServiceInterface $tailwind_classes, BreezyLayoutsElementPluginManagerInterface $element_manager) {
-    $this->tailwindClassService = $tailwind_classes;
-    $this->elementManager = $element_manager;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container) {
-    /** @var \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface $tailwind_classes */
-    $tailwind_classes = $container->get('breezy_layouts.tailwind_classes');
-    /** @var \Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface $element_manager */
-    $element_manager = $container->get('plugin.manager.breezy_layouts.element');
-    return new static(
-      $tailwind_classes,
-      $element_manager
-    );
-  }
   /**
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'breezy_layouts_ui_add_property_form';
+    return 'breezy_layouts_ui_add_element_form';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
-    $parent_key = $this->getRequest('parent');
+  public function buildForm(array $form, FormStateInterface $form_state, BreezyLayoutsVariantInterface $variant = NULL) {
+    $parent_key = $this->getRequest()->query->get('parent');
+
+    $form = parent::buildForm($form, $form_state, $webform);
+
     $options = $this->tailwindClassService->getPropertyOptions();
     $input = $form_state->getUserInput();
     $property_wrapper_id = 'property-wrapper';
@@ -99,7 +54,7 @@ class BreezyLayoutsAddPropertyForm extends FormBase {
     }
 
     if ($property_type) {
-      $form['elements'] = [
+      $form['element'] = [
         '#type' => 'radios',
         '#title' => $this->t('Select a form element'),
         '#description' => $this->t('Element type will render the property on the layout configuration form.'),
@@ -109,9 +64,16 @@ class BreezyLayoutsAddPropertyForm extends FormBase {
       ];
     }
 
+    $element_plugin_id = $input['element_configuration'] ?? $variant->
+
+
+
     $form['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Submit'),
+      '#ajax' => [
+
+      ],
     ];
 
     return $form;

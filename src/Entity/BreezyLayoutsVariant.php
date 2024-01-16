@@ -3,6 +3,7 @@
 namespace Drupal\breezy_layouts\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
+use Drupal\breezy_layouts\Service\BreezyLayoutsVariantPluginManagerInterface;
 
 /**
  * Defines the BreezyLayoutsVariant config entity.
@@ -153,6 +154,51 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
     if (!$this->isEnabled()) {
       return FALSE;
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setBreakpointGroup($breakpoint_group) {
+    $this->breakpointGroup = $breakpoint_group;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getBreakpointGroup() {
+    return $this->breakpointGroup;
+  }
+
+  /**
+   * Get element configuration.
+   *
+   * @param mixed $key
+   *   The form key.
+   *
+   * @return array|null
+   *   An array containing an initialized element.
+   */
+  public function getElementConfiguration($key) {
+    // Initialize variant plugin.
+    // Get breakpoints -> get elements.
+    $variant_plugin_configuration = $this->getPluginConfiguration();
+    $variant_plugin_id = $this->getPluginId();
+    // Find the element configuration based on the key.
+  }
+
+  /**
+   * Get element id from key.
+   *
+   * @param mixed $key
+   *   The form key.
+   *
+   * @return string|null
+   *   The element plugin id.
+   */
+  public function getElementPluginId($key) {
+    
   }
 
 }
