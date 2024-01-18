@@ -6,6 +6,8 @@ use Drupal\Component\Annotation\Plugin;
 
 /**
  * Defines a Breezy Layouts Element plugin.
+ *
+ * @Annotation
  */
 class BreezyLayoutsElement extends Plugin {
 

@@ -132,15 +132,6 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
    * {@inheritdoc}
    */
   public function form(array $form, FormStateInterface $form_state) {
-    $form['element'] = [
-      '#type' => 'container',
-    ];
-    $form['element']['title'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Title'),
-
-    ];
-
 
 
     return $form;

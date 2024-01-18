@@ -48,11 +48,12 @@ class BreezyLayoutsElementForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, BreezyLayoutsVariantInterface $variant = NULL, $key = NULL, $parent_key = NULL, $type = NULL) {
+  public function buildForm(array $form, FormStateInterface $form_state, BreezyLayoutsVariantInterface $breezy_layouts_variant = NULL, $key = NULL, $parent_key = NULL, $type = NULL) {
     // Override an element's default value using the $form_state.
     if ($form_state->get('default_value')) {
       $this->element['#default_value'] = $form_state->get('default_value');
     }
+
 
     // Set default values.
     // Get plugin instance.

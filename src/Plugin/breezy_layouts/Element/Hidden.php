@@ -9,13 +9,13 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * @BreezyLayoutsElement(
  *   id = "hidden",
- *   label = @Translation("Hidden),
+ *   label = @Translation("Hidden"),
  *   description = @Translation("Provides a hidden element."),
  *   hidden = FALSE,
  *   multiple = FALSE,
  * )
  */
-class Hidden extends BreezyLayoutsElementBase {
+class Hidden extends BreezyLayoutsElementBase implements BreezyLayoutsElementInterface {
 
   /**
    * {@inheritdoc}
@@ -27,9 +27,13 @@ class Hidden extends BreezyLayoutsElementBase {
       '#title' => $this->t('Value'),
       '#default_value' => '',
       '#required' => TRUE,
+      '#attributes' => [
+        'class' => ['$form_state->get(property): ' . $form_state->get('property')],
+      ],
       '#options' => $this->tailwindClasses->getClassOptions($form_state->get('property')),
     ];
 
     return $form;
   }
+
 }

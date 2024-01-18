@@ -82,7 +82,6 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
       'container' => [],
       'wrapper' => [],
       'main' => [],
-      'overrides' => [],
       ] + parent::defaultConfiguration();
   }
 
@@ -204,11 +203,14 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
               'hidden' => TRUE,
               'limit' => FALSE,
             ],
-            'action' => 'order',
-            'relationship' => 'sibling',
-            'group' => 'row-weight',
+            [
+              'action' => 'order',
+              'relationship' => 'sibling',
+              'group' => 'row-weight',
+            ],
           ],
         ];
+
         $dialog_options = [
           'width' => 800,
         ];
@@ -217,27 +219,12 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
         $form['breakpoints'][$breakpoint_name]['wrapper']['add_property'] = [
           '#type' => 'link',
           '#title' => $this->t('Add property'),
-          '#url' => Url::fromRoute('breezy_layouts_ui.property_form', ['variant', $variant->id()], ['parent' => $parent_key]),
+          '#url' => Url::fromRoute('entity.breezy_layouts_ui.property.add', ['breezy_layouts_variant' => $variant->id()], ['query' => ['parent' => $parent_key]]),
           '#attributes' => [
             'class' => ['use-ajax'],
             'data-dialog-type' => 'modal',
             'data-dialog-options' => json_encode($dialog_options),
           ],
-        ];
-
-        $form['breakpoints'][$breakpoint_name]['wrapper']['gap'] = [
-          '#type' => 'select',
-          '#title' => $this->t('Gap'),
-          '#description' => $this->t('Space between columns.'),
-          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['wrapper']['gap'] ?? 'gap-0',
-          '#options' => $this->tailwindClasses->getClassOptions('gap'),
-        ];
-
-        $form['breakpoints'][$breakpoint_name]['wrapper']['additional_classes'] = [
-          '#type' => 'textfield',
-          '#title' => $this->t('Additional wrapper classes'),
-          '#description' => $this->t('Enter additional classes that will be added to the flex wrapper.'),
-          '#default_value' => $this->configuration['breakpoints'][' . $breakpoint_name . ']['wrapper']['classes'] ?? '',
         ];
 
         $form['breakpoints'][$breakpoint_name]['main'] = [
@@ -250,126 +237,6 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
           ],
         ];
 
-        $form['breakpoints'][$breakpoint_name]['main']['additional_classes'] = [
-          '#type' => 'textfield',
-          '#title' => $this->t('Additional classes'),
-          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['main']['classes'] ?? '',
-        ];
-
-      }
-    }
-
-    $form['overrides'] = [
-      '#type' => 'fieldset',
-      '#title' => $this->t('Overrides'),
-      '#description' => $this->t('Allow editors to override configured options.'),
-    ];
-    $form['overrides']['enabled'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Enable'),
-    ];
-
-    $overrides_wrapper_id = 'overrides-wrapper';
-
-    $component_options = [
-      'container' => $this->t('Container'),
-      'wrapper' => $this->t('Wrapper'),
-      'regions' => $this->t('Region'),
-    ];
-
-    $form['overrides']['override_components'] = [
-      '#type' => 'checkboxes',
-      '#title' => $this->t('Layout parts to allow overrides'),
-      '#options' => $component_options,
-      '#default_value' => $this->configuration['overrides']['override_components'] ?? '',
-      '#states' => [
-        'visible' => [
-          'input[name="plugin_configuration[overrides][enabled]"]' => ['checked' => TRUE],
-        ],
-      ],
-      '#ajax' => [
-        'callback' => [$this, 'changeOverrides'],
-        'wrapper' => $overrides_wrapper_id,
-      ],
-    ];
-
-    $overrides = FALSE;
-
-    if (isset($this->configuration['overrides']['override_components'])) {
-      $overrides = $this->configuration['overrides']['override_components'];
-      $form_state->set('overrides', $overrides);
-    }
-
-    $form['overrides']['components'] = [
-      '#type' => 'container',
-      '#attributes' => [
-        'id' => $overrides_wrapper_id,
-      ],
-    ];
-
-    $overrides = $form_state->get('overrides');
-    if ($form_state->getValue(['overrides', 'components'])) {
-      $overrides = $form_state->getValue(['overrides', 'components']);
-    }
-
-    if (!empty($overrides)) {
-
-      $override_property_options = $this->cssPropertyMap();
-      foreach ($overrides as $override_key => $override_value) {
-        if (empty($override_value)) {
-          continue;
-        }
-        $form['overrides']['components'][$override_key] = [
-          '#type' => 'details',
-          '#title' => $component_options[$override_key],
-        ];
-        foreach ($override_property_options as $property_key => $property_option) {
-          $num_lines_key = ['components', $override_key, $property_key, 'num_lines'];
-          $num_lines = $form_state->get($num_lines_key);
-          if ($num_lines === NULL) {
-            $num_lines = 1;
-            $form_state->set($num_lines_key, $num_lines);
-          }
-          $removed_lines_key = ['components', $override_key, $property_key, 'removed_lines'];
-          $removed_lines = $form_state->get($num_lines_key);
-          if ($removed_lines == NULL || !is_array($removed_lines)) {
-            $removed_lines = [];
-            $form_state->set($removed_lines_key, $removed_lines);
-          }
-          $form['overrides']['components'][$override_key][$property_key] = [
-            '#type' => 'table',
-            '#title' => $property_option['label'],
-            '#header' => [$property_option['label'], 'Option label', 'Actions'],
-            '#num_lines' => $num_lines,
-            '#sort' => TRUE,
-          ];
-
-          for ($i = 0; $i < $num_lines; $i++) {
-            if (in_array($i, $removed_lines)) {
-              continue;
-            }
-            $this->tailwindClasses->getClassOptions($property_option['css_property']);
-            $form['overrides']['components'][$override_key][$property_key][$i]['value'] = [
-              '#type' => 'select',
-              '#title' => $this->t('Value'),
-              '#empty_option' => $this->t('- Select -'),
-              '#options' => $this->tailwindClasses->getClassOptions($property_option['css_property']),
-              '#default_value' => '',
-            ];
-            $form['overrides']['components'][$override_key][$property_key][$i]['label'] = [
-              '#type' => 'textfield',
-              '#title' => $this->t('Label'),
-              '#default_value' => '',
-            ];
-            $form['overrides']['components'][$override_key][$property_key][$i]['operation'] = [
-              '#type' => 'submit',
-              '#value' => $this->t('Remove'),
-              '#name' => implode('-', $removed_lines_key),
-
-            ];
-          }
-
-        }
       }
     }
 

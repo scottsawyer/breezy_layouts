@@ -198,7 +198,7 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
    *   The element plugin id.
    */
   public function getElementPluginId($key) {
-    
+
   }
 
 }

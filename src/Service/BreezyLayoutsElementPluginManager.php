@@ -3,6 +3,7 @@
 namespace Drupal\breezy_layouts\Service;
 
 use Drupal\breezy_layouts\Annotation\BreezyLayoutsElement;
+use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -27,7 +28,7 @@ class BreezyLayoutsElementPluginManager extends DefaultPluginManager implements 
    *   The module handler to invoke the alter hook with.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
-    parent::__construct('Plugin/breezy_layouts/Element', $namespaces, $module_handler, BreezyLayoutsElementPluginManagerInterface::class, BreezyLayoutsElement::class);
+    parent::__construct('Plugin/breezy_layouts/Element', $namespaces, $module_handler, BreezyLayoutsElementInterface::class, BreezyLayoutsElement::class);
     $this->setCacheBackend($cache_backend, 'breezy_layouts_element');
     $this->alterInfo('breezy_layouts_element');
   }

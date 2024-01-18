@@ -24,7 +24,7 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
       'margin' => [
         'label' => 'Margin',
         'css_property' => 'margin',
-        'method' => 'getPadding',
+        'method' => 'getMargin',
       ],
       'flex_direction' => [
         'label' => 'Flex direction',
@@ -66,31 +66,31 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
   public function getMargin() {
     $margins = [
       "m-0","m-px","m-0.5","m-1","m-1.5","m-2","m-2.5","m-3","m-3.5","m-4","m-5","m-6","m-7","m-8","m-9","m-10","m-11","m-12",
-      "m-14","m-16","m-20","m-24","m-28","m-32","m-36","m-40","m-44","m-48","m-52","m-56","m-60","m-64","m-72","m-80","m-96",
+      "m-14","m-16","m-20","m-24","m-28","m-32","m-36","m-40","m-44","m-48","m-52","m-56","m-60","m-64","m-72","m-80","m-96","m-auto",
 
       "mx-0","mx-px","mx-0.5","mx-1","mx-1.5","mx-2","mx-2.5","mx-3","mx-3.5","mx-4","mx-5","mx-6","mx-7","mx-8","mx-9","mx-10","mx-11","mx-12",
-      "mx-14","mx-16","mx-20","mx-24","mx-28","mx-32","mx-36","mx-40","mx-44","mx-48","mx-52","mx-56","mx-60","mx-64","mx-72","mx-80","mx-96",
+      "mx-14","mx-16","mx-20","mx-24","mx-28","mx-32","mx-36","mx-40","mx-44","mx-48","mx-52","mx-56","mx-60","mx-64","mx-72","mx-80","mx-96","mx-auto",
 
       "my-0","my-px","my-0.5","my-1","my-1.5","my-2","my-2.5","my-3","my-3.5","my-4","my-5","my-6","my-7","my-8","my-9","my-10","my-11","my-12",
-      "my-14","my-16","my-20","my-24","my-28","my-32","my-36","my-40","my-44","my-48","my-52","my-56","my-60","my-64","my-72","my-80","my-96",
+      "my-14","my-16","my-20","my-24","my-28","my-32","my-36","my-40","my-44","my-48","my-52","my-56","my-60","my-64","my-72","my-80","my-96","my-auto",
 
       "ms-0","ms-px","ms-0.5","ms-1","ms-1.5","ms-2","ms-2.5","ms-3","ms-3.5","ms-4","ms-5","ms-6","ms-7","ms-8","ms-9","ms-10","ms-11","ms-12",
-      "ms-14","ms-16","ms-20","ms-24","ms-28","ms-32","ms-36","ms-40","ms-44","ms-48","ms-52","ms-56","ms-60","ms-64","ms-72","ms-80","ms-96",
+      "ms-14","ms-16","ms-20","ms-24","ms-28","ms-32","ms-36","ms-40","ms-44","ms-48","ms-52","ms-56","ms-60","ms-64","ms-72","ms-80","ms-96","ms-auto",
 
       "me-0","me-px","me-0.5","me-1","me-1.5","me-2","me-2.5","me-3","me-3.5","me-4","me-5","me-6","me-7","me-8","me-9","me-10","me-11","me-12",
-      "me-14","me-16","me-20","me-24","me-28","me-32","me-36","me-40","me-44","me-48","me-52","me-56","me-60","me-64","me-72","me-80","me-96",
+      "me-14","me-16","me-20","me-24","me-28","me-32","me-36","me-40","me-44","me-48","me-52","me-56","me-60","me-64","me-72","me-80","me-96","me-auto",
 
       "mt-0","mt-px","mt-0.5","mt-1","mt-1.5","mt-2","mt-2.5","mt-3","mt-3.5","mt-4","mt-5","mt-6","mt-7","mt-8","mt-9","mt-10","mt-11","mt-12",
-      "mt-14","mt-16","mt-20","mt-24","mt-28","mt-32","mt-36","mt-40","mt-44","mt-48","mt-52","mt-56","mt-60","mt-64","mt-72","mt-80","mt-96",
+      "mt-14","mt-16","mt-20","mt-24","mt-28","mt-32","mt-36","mt-40","mt-44","mt-48","mt-52","mt-56","mt-60","mt-64","mt-72","mt-80","mt-96","mt-auto",
 
       "mr-0","mr-px","mr-0.5","mr-1","mr-1.5","mr-2","mr-2.5","mr-3","mr-3.5","mr-4","mr-5","mr-6","mr-7","mr-8","mr-9","mr-10","mr-11","mr-12",
-      "mr-14","mr-16","mr-20","mr-24","mr-28","mr-32","mr-36","mr-40","mr-44","mr-48","mr-52","mr-56","mr-60","mr-64","mr-72","mr-80","mr-96",
+      "mr-14","mr-16","mr-20","mr-24","mr-28","mr-32","mr-36","mr-40","mr-44","mr-48","mr-52","mr-56","mr-60","mr-64","mr-72","mr-80","mr-96","mr-auto",
 
       "mb-0","mb-px","mb-0.5","mb-1","mb-1.5","mb-2","mb-2.5","mb-3","mb-3.5","mb-4","mb-5","mb-6","mb-7","mb-8","mb-9","mb-10","mb-11","mb-12",
-      "mb-14","mb-16","mb-20","mb-24","mb-28","mb-32","mb-36","mb-40","mb-44","mb-48","mb-52","mb-56","mb-60","mb-64","mb-72","mb-80","mb-96",
+      "mb-14","mb-16","mb-20","mb-24","mb-28","mb-32","mb-36","mb-40","mb-44","mb-48","mb-52","mb-56","mb-60","mb-64","mb-72","mb-80","mb-96","mb-auto",
 
       "ml-0","ml-px","ml-0.5","ml-1","ml-1.5","ml-2","ml-2.5","ml-3","ml-3.5","ml-4","ml-5","ml-6","ml-7","ml-8","ml-9","ml-10","ml-11","ml-12",
-      "ml-14","ml-16","ml-20","ml-24","ml-28","ml-32","ml-36","ml-40","ml-44","ml-48","ml-52","ml-56","ml-60","ml-64","ml-72","ml-80","ml-96",
+      "ml-14","ml-16","ml-20","ml-24","ml-28","ml-32","ml-36","ml-40","ml-44","ml-48","ml-52","ml-56","ml-60","ml-64","ml-72","ml-80","ml-96","ml-auto",
 
     ];
     return $margins;
@@ -228,6 +228,7 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
         $class_options[$class] = $class;
       }
     }
+
     return $class_options;
   }
 

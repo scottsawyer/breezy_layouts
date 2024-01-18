@@ -153,6 +153,9 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
     ];
 
     if (!empty($plugin_id)) {
+      if (!$plugin_configuration) {
+        $plugin_configuration = [];
+      }
       /** @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface $plugin */
       $plugin = $this->variantPluginManager->createInstance($plugin_id, $plugin_configuration);
       $form['layout'] = [
@@ -227,14 +230,11 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   protected function getPluginConfiguration(string $pluginId, array $formField, FormStateInterface $formState) : array {
-    $logger = \Drupal::logger('getPluginConfiguration');
     /** @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface $plugin */
     $plugin = $this->variantPluginManager->createInstance($pluginId);
 
     $plugin->submitConfigurationForm($formField, $formState);
-    $plugin_configuration = $plugin->getConfiguration();
 
-    $logger->notice('Plugin configuration <pre>' . print_r($plugin_configuration, TRUE) . '</pre>');
     return $plugin->getConfiguration();
   }
 

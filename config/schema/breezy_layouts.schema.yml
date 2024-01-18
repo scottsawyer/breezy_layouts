@@ -41,6 +41,12 @@ breezy_layouts.breezy_layouts_element.plugin.*:
 breezy_layouts.element_plugin_configuration:
   type: mapping
   mapping:
+    title:
+      type: string
+      label: 'Field title'
+    id:
+      type: string
+      label: 'ID'
     property:
       type: string
       label: 'CSS Class property'
