@@ -2,6 +2,8 @@
 
 namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
 
+use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface;
@@ -23,35 +25,22 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
   protected $tailwindClasses;
 
   /**
-   * Constructs a new Hidden element plugin object.
+   * Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface definition.
    *
-   * @param array $configuration
-   *   The plugin configuration.
-   * @param string $plugin_id
-   *   The plugin id.
-   * @param mixed $plugin_definition
-   *   The plugin definition.
-   * @param \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface $tailwind_classes
-   *   The tailwind classes service.
+   * @var \Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, BreezyLayoutsTailwindClassServiceInterface $tailwind_classes) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->configuration += $this->defaultConfiguration();
-    $this->tailwindClasses = $tailwind_classes;
-  }
+  protected $variant = NULL;
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    $instance = new static($configuration, $plugin_id, $plugin_definition);
+
     /** @var \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface $tailwind_classes */
-    $tailwind_classes = $container->get('breezy_layouts.tailwind_classes');
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $tailwind_classes
-    );
+    $instance->tailwindClasses = $container->get('breezy_layouts.tailwind_classes');
+
+    return $instance;
   }
 
   /**
@@ -133,8 +122,57 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
    */
   public function form(array $form, FormStateInterface $form_state) {
 
+    $element = $form_state->get('element');
+    $type = $element['#type'];
+    $form['type'] = [
+      '#type' => 'value',
+      '#value' => $type,
+      '#parents' => ['properties', 'type'],
+    ];
+
+    $form['element'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Element settings'),
+      '#weight' => -50,
+    ];
+    $form['element']['title'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Title'),
+      '#required' => TRUE,
+      '#default_value' => $form_state->getValue('title') ?? '',
+    ];
 
     return $form;
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getConfigurationFormProperties(array $form, FormStateInterface $form_state) {
+    $element_properties = $form_state->getValues();
+
+    return $element_properties;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setEntities(EntityInterface $entity) {
+    if ($entity instanceof BreezyLayoutsVariantInterface) {
+      $this->variant = $entity;
+    }
+    else {
+      throw new \Exception('Entity type must be a webform or webform submission');
+    }
+    return $this;
+  }
+
+  /**
+   * Reset variant entity.
+   */
+  public function resetEntities() {
+    $this->variant = NULL;
+  }
+
 
 }

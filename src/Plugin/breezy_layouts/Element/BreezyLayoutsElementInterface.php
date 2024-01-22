@@ -3,6 +3,7 @@
 namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
 
 use Drupal\Component\Plugin\ConfigurableInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
@@ -37,4 +38,21 @@ interface BreezyLayoutsElementInterface extends ConfigurableInterface, Container
    *   The form state object.
    */
   public function form(array $form, FormStateInterface $form_state);
+
+  /**
+   * Set variant entities.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to set.
+   *
+   * @return mixed
+   *
+   * @thows \Exception
+   */
+  public function setEntities(EntityInterface $entity);
+  /**
+   * Reset variant entity.
+   */
+  public function resetEntities();
+
 }

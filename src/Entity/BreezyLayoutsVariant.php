@@ -2,7 +2,9 @@
 
 namespace Drupal\breezy_layouts\Entity;
 
+use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\breezy_layouts\Service\BreezyLayoutsVariantPluginManagerInterface;
 
 /**
@@ -200,5 +202,80 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
   public function getElementPluginId($key) {
 
   }
+
+  /**
+   * Set element properties.
+   *
+   * @param string $key
+   *   The element key.
+   * @param array $properties
+   *   The element properties.
+   * @param string $parent_key
+   *   The parent key.
+   *
+   * @return $this
+   */
+  public function setElementProperties($key, array $properties, $parent_key = '') {
+    $parent_array = preg_split('/[\[]/', str_replace(']', '', $parent_key));
+    if (empty($parent_array)) {
+      return $this;
+    }
+    // Get variant plugin, determine where the $key and $parent_key goes, inject the new element, set it's properties.
+    $plugin_id = $this->getPluginId();
+    $plugin_configuration = $this->getPluginConfiguration();
+    NestedArray::setValue($plugin_configuration, $parent_array, [$key => $properties]);
+    $this->setPluginConfiguration($plugin_configuration);
+    return $this;
+  }
+
+  /**
+   * Set element properties.
+   *
+   * @param array $elements
+   *   An associative nested array of elements.
+   * @param string $key
+   *   The element's key.
+   * @param array $properties
+   *   An associative array of properties.
+   * @param array $parent_key
+   *   (optional) The element's parent key. Only used for new elements.
+   *
+   * @return bool
+   *   TRUE when the element's properties has been set. FALSE when the element
+   *   has not been found.
+   */
+  protected function setElementPropertiesRecursive(array &$elements, $key, array $properties, array $parent_key = []) {
+    foreach ($parent_key as $parent_array_key) {
+      if (array_key_exists($parent_array_key, $elements)) {
+
+      }
+    }
+    foreach ($elements as $element_key => &$element) {
+      // Make sure the element key is a string.
+      $element_key = (string) $element_key;
+
+      if (!BreezyLayoutsElementHelper::isElement($element, $element_key)) {
+        continue;
+      }
+
+      if ($element_key === $key) {
+        $element = $properties + BreezyLayoutsElementHelper::removeProperties($element);
+        return TRUE;
+      }
+
+      if ($element_key === $parent_key) {
+        $element[$key] = $properties;
+        return TRUE;
+      }
+
+      if ($this->setElementPropertiesRecursive($element, $key, $properties, $parent_key)) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
+  }
+
+
 
 }

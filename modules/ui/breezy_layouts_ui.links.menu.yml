@@ -1,11 +1,16 @@
-breezy_layouts_ui.settings:
+breezy_layouts_ui.admin:
   title: 'Breezy Layouts'
+  route_name: breezy_layouts_ui.admin
+  parent: system.admin_config_content
+
+breezy_layouts_ui.settings:
+  title: 'Breezy Layouts settings'
   route_name: breezy_layouts_ui.settings
   description: 'Configure Breezy Layouts settings'
-  parent: system.admin_config_content
+  parent: breezy_layouts_ui.admin
 
 entity.breezy_layouts_variant.collection:
   title: 'Breezy Layouts Variants'
-  parent: system.admin.structure
+  parent: breezy_layouts_ui.admin
   description: 'Manage Breezy Layouts variants'
-  route_name: entity.brreezy_layouts_variant.collection
+  route_name: entity.breezy_layouts_variant.collection

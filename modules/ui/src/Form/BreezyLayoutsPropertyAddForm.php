@@ -2,10 +2,14 @@
 
 namespace Drupal\breezy_layouts_ui\Form;
 
+use Drupal\breezy_layouts\Entity\BreezyLayoutsVariant;
 use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
 use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
 use Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Form\FormBase;
 use Drupal\Core\Url;
 use Drupal\Component\Serialization\Json;
 use Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface;
@@ -14,7 +18,41 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Add property form.
  */
-class BreezyLayoutsPropertyAddForm extends BreezyLayoutsElementFormBase {
+class BreezyLayoutsPropertyAddForm extends FormBase {
+
+  /**
+   * Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface
+   * definition.
+   *
+   * @var \Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface
+   */
+  protected $elementManager;
+
+  /**
+   * Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface
+   * definition.
+   *
+   * @var \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface
+   */
+  protected $tailwindClasses;
+
+  /**
+   * Placeholder variant entity.
+   *
+   * @var \Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface
+   */
+  protected $variant;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    $instance = parent::create($container);
+    $instance->elementManager = $container->get('plugin.manager.breezy_layouts.element');
+    $instance->tailwindClasses = $container->get('breezy_layouts.tailwind_classes');
+    $instance->variant = BreezyLayoutsVariant::create(['id' => '_variant_temp_form']);
+    return $instance;
+  }
 
   /**
    * {@inheritdoc}
@@ -29,7 +67,8 @@ class BreezyLayoutsPropertyAddForm extends BreezyLayoutsElementFormBase {
   public function buildForm(array $form, FormStateInterface $form_state, BreezyLayoutsVariantInterface $breezy_layouts_variant = NULL, $type = NULL) {
     $parent_key = $this->getRequest()->query->get('parent');
 
-    $form = parent::buildForm($form, $form_state, $breezy_layouts_variant);
+    $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
+    $form['#attached']['library'][] = 'breezy_layouts/breezy_layouts.ajax';
 
     $options = $this->tailwindClasses->getPropertyOptions();
     $input = $form_state->getUserInput();
@@ -73,6 +112,7 @@ class BreezyLayoutsPropertyAddForm extends BreezyLayoutsElementFormBase {
         if ($parent_key) {
           $query['parent'] = $parent_key;
         }
+
         $url = Url::fromRoute('entity.breezy_layouts_ui.element.add_form', [
           'breezy_layouts_variant' => $breezy_layouts_variant->id(),
           'type' => $element_type,
@@ -85,9 +125,9 @@ class BreezyLayoutsPropertyAddForm extends BreezyLayoutsElementFormBase {
           '#title' => $element_definition['label'],
           '#url' => $url,
           '#attributes' => [
-            'class' => ['use-ajax'],
+            'class' => ['breezy-layouts-ajax-link'],
             'data-dialog-type' => 'dialog',
-            'data-dialog-render' => 'off_canvas',
+            'data-dialog-renderer' => 'off_canvas',
             'data-dialog-options' => $dialog_options,
           ],
         ];
@@ -101,17 +141,15 @@ class BreezyLayoutsPropertyAddForm extends BreezyLayoutsElementFormBase {
           '#title' => $this->t('Add element'),
           '#url' => $url,
           '#attributes' => [
-            'class' => ['use-ajax', 'button'],
+            'class' => ['breezy-layouts-ajax-link', 'button'],
             'data-dialog-type' => 'dialog',
-            'data-dialog-render' => 'off_canvas',
+            'data-dialog-renderer' => 'off_canvas',
             'data-dialog-options' => $dialog_options,
           ],
         ];
         $form['elements'][$element_type] = $row;
       }
     }
-
-    unset($form['actions']);
 
     return $form;
 
@@ -121,7 +159,31 @@ class BreezyLayoutsPropertyAddForm extends BreezyLayoutsElementFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    $form_state->clearErrors();
+    $form_state->setRebuild();
+  }
 
+  /**
+   * Submit form #ajax callback.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   *
+   * @return \Drupal\Core\Ajax\AjaxResponse
+   *   An Ajax response that display validation error messages or redirects
+   *   to a URL
+   */
+  public function submitAjaxForm(array &$form, FormStateInterface $form_state) {
+    // Remove #id from wrapper so that the form is still wrapped in a <div>
+    // and triggerable.
+    // @see js/webform.element.details.toggle.js
+    $form['#prefix'] = '<div>';
+
+    $response = new AjaxResponse();
+    $response->addCommand(new HtmlCommand('#breezy-layouts-ui-element-ajax-wrapper', $form));
+    return $response;
   }
 
   /**

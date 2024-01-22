@@ -14,8 +14,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @BreezyLayoutsVariantPlugin(
  *   id = "breezy_one_column",
  *   label = @Translation("Breezy one column"),
- *   description = @Translation("Provides a variant plugin for Breezy one column layout"),
- *   layout = "breezy-one-column",
+ *   description = @Translation("Provides a variant plugin for Breezy one
+ *   column layout"), layout = "breezy-one-column",
  * )
  */
 class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
@@ -92,7 +92,11 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
     $form = parent::buildConfigurationForm($form, $form_state);
     $variant = $form_state->get('variant');
     $breakpoints_wrapper_id = 'breakpoints-wrapper';
-
+    //$properties = $this->configuration['breakpoints'][$breakpoint_name]['wrapper']['properties'];
+    $form['test'] = [
+      '#markup' => 'configuration: <pre>' . print_r($this->configuration, TRUE) . '</pre>',
+      '#allowed_tags' => ['pre'],
+    ];
     $form['container'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Container'),
@@ -159,6 +163,7 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
           '#tree' => TRUE,
           '#prefix' => '<div id="' . $breakpoint_wrapper_id . '">',
           '#suffix' => '</div>',
+          '#open' => $this->configuration['breakpoints'][$breakpoint_name]['enabled'] ?? FALSE,
         ];
 
         $form['breakpoints'][$breakpoint_name]['enabled'] = [
@@ -189,6 +194,8 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
         ];
 
         // Display properties.
+        $rows = [];
+        //$elements = $this->getElements();
         $form['breakpoints'][$breakpoint_name]['wrapper']['properties'] = [
           '#type' => 'table',
           '#sort' => TRUE,
@@ -215,7 +222,7 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
           'width' => 800,
         ];
 
-        $parent_key = 'plugin_configuration[breakpoints][' . $breakpoint_name . '][wrapper]';
+        $parent_key = 'breakpoints[' . $breakpoint_name . '][wrapper][properties]';
         $form['breakpoints'][$breakpoint_name]['wrapper']['add_property'] = [
           '#type' => 'link',
           '#title' => $this->t('Add property'),
@@ -239,10 +246,6 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
 
       }
     }
-
-
-
-
 
     return $form;
   }

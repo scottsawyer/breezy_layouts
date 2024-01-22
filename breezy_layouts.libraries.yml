@@ -1,0 +1,11 @@
+breezy_layouts.ajax:
+  version: VERSION
+  js:
+    js/breezy_layouts.ajax.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/drupal.ajax
+    - core/drupal.announce
+    - core/jquery
+    - core/once

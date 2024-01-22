@@ -127,4 +127,19 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
     return $form;
   }
 
+  /**
+   * Get elements from configuration.
+   *
+   * @param string $parent_key
+   *   The parent key.
+   *
+   * @return array
+   *   An array of elements for a given key.
+   */
+  protected function getElements() {
+    $elements = [];
+    // @todo Get elements from variant.
+    return $elements;
+  }
+
 }

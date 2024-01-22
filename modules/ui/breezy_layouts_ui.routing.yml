@@ -1,5 +1,13 @@
-breezy_layouts_ui.settings:
+breezy_layouts_ui.admin:
   path: '/admin/config/content/breezy-layouts'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Breezy Layouts'
+  requirements:
+    _permission: 'administer breezy layouts'
+
+breezy_layouts_ui.settings:
+  path: '/admin/config/content/breezy-layouts/settings'
   defaults:
     _form: 'Drupal\breezy_layouts_ui\Form\BreezyLayoutsSettingsForm'
     _title: 'Breezy Layouts settings'
@@ -7,6 +15,14 @@ breezy_layouts_ui.settings:
     _permission: 'administer breezy layouts'
   options:
     _admin_route: TRUE
+
+entity.breezy_layouts_variant.collection:
+  path: '/admin/config/content/breezy-layouts/variants'
+  defaults:
+    _entity_list: 'breezy_layouts_variant'
+    _title: 'Breezy Layouts variants'
+  requirements:
+    _permission: 'administer breezy layouts'
 
 entity.breezy_layouts_variant.add_form:
   path: '/admin/config/content/breezy-layouts/variants/add'

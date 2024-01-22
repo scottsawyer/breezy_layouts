@@ -22,7 +22,7 @@ class Checkbox extends BreezyLayoutsElementBase {
     $form = parent::form($form, $form_state);
     $form['single']['value'] = [
       '#type' => 'select',
-      '#title' => $this->t('Value'),
+      '#title' => $this->t('Checkbox value'),
       '#default_value' => '',
       '#required' => TRUE,
       '#options' => $this->tailwindClasses->getClassOptions($form_state->get('property')),

@@ -4,6 +4,7 @@ namespace Drupal\breezy_layouts\Service;
 
 use Drupal\breezy_layouts\Annotation\BreezyLayoutsElement;
 use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -45,4 +46,34 @@ class BreezyLayoutsElementPluginManager extends DefaultPluginManager implements 
     }
     return $definitions;
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getElementPluginId(array $element) {
+    if (isset($element['#breezy_layouts_plugin_id']) && $this->hasDefinition($element['#breezy_layouts_plugin_id'])) {
+      return $element['#breezy_layouts_plugin_id'];
+    }
+    elseif (isset($element['#type'])) {
+      return $element['#type'];
+    }
+  }
+  /**
+   * {@inheritdoc}
+   */
+  public function getElementInstance(array $element, EntityInterface $entity = NULL) {
+    $plugin_id = $this->getElementPluginId($element);
+
+    /** @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface $element_plugin */
+    $element_plugin = $this->createInstance($plugin_id);
+
+    if ($entity) {
+      $element_plugin->setEntities($entity);
+    }
+    else {
+      $element_plugin->resetEntities();
+    }
+    return $element_plugin;
+  }
+
 }
