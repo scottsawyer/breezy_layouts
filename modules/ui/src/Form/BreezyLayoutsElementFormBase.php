@@ -2,17 +2,13 @@
 
 namespace Drupal\breezy_layouts_ui\Form;
 
-use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
-use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\SubformState;
 use Drupal\Component\Utility\Html;
 use Drupal\breezy_layouts\Entity\BreezyLayoutsVariant;
 use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
-use Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface;
-use Drupal\breezy_layouts\Form\BreezyLayoutsAjaxFormTrait;
+use Drupal\breezy_layouts\Form\BreezyLayoutsDialogFormTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -20,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 abstract class BreezyLayoutsElementFormBase extends FormBase {
 
-  use BreezyLayoutsAjaxFormTrait;
+  use BreezyLayoutsDialogFormTrait;
 
   /**
    * Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface
@@ -108,7 +104,7 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
 
     $form['#parents'] = [];
-    $form['properties'] = ['#parents' => ['properties']];
+    $form['properties'] = ['#parents' => ['properties'], '#tree' => TRUE];
     $subform_state = SubformState::createForSubform($form['properties'], $form, $form_state);
     $subform_state->set('element', $this->element);
     $subform_state->set('property', $this->property);
@@ -162,7 +158,7 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
     ];
     $form['actions']['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Save'),
+      '#value' => $this->t('Add element'),
     ];
     return $this->buildDialogForm($form, $form_state);
   }
@@ -203,13 +199,11 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
     if ($this->requestStack->getCurrentRequest()->query->get('destination')) {
       $redirect_destination = $this->getRedirectDestination();
       $destination = $redirect_destination->get();
-      $destination .= (strpo($destination, '?') !== FALSE ? '&' : '?') . 'update=' . $key;
+      $destination .= (strpos($destination, '?') !== FALSE ? '&' : '?') . 'update=' . $key;
       $redirect_destination->set($destination);
     }
 
     $query = ['update' => $key];
-    $form_state->clearErrors();
-    //$form_state->setRebuild();
     $form_state->setRedirectUrl($this->variant->toUrl('edit-form', ['query' => $query]));
 
   }
@@ -278,6 +272,7 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
    *   TRUE if the element key, FALSE otherwise.
    */
   public function exists($key) {
+    // @todo Add a check for used keys.
     //$elements = $this->webform->getElementsInitializedAndFlattened();
     //return (isset($elements[$key])) ? TRUE : FALSE;
     return FALSE;

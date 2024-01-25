@@ -204,16 +204,7 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
   }
 
   /**
-   * Set element properties.
-   *
-   * @param string $key
-   *   The element key.
-   * @param array $properties
-   *   The element properties.
-   * @param string $parent_key
-   *   The parent key.
-   *
-   * @return $this
+   * {@inheritdoc}
    */
   public function setElementProperties($key, array $properties, $parent_key = '') {
     $parent_array = preg_split('/[\[]/', str_replace(']', '', $parent_key));
@@ -223,7 +214,9 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
     // Get variant plugin, determine where the $key and $parent_key goes, inject the new element, set it's properties.
     $plugin_id = $this->getPluginId();
     $plugin_configuration = $this->getPluginConfiguration();
-    NestedArray::setValue($plugin_configuration, $parent_array, [$key => $properties]);
+    $existing_properties = NestedArray::getValue($plugin_configuration, $parent_array);
+    $existing_properties[$key] = $properties;
+    NestedArray::setValue($plugin_configuration, $parent_array, $existing_properties);
     $this->setPluginConfiguration($plugin_configuration);
     return $this;
   }

@@ -100,4 +100,17 @@ class BreezyLayoutsElementHelper {
     return Element::properties($element);
   }
 
+  /**
+   * Form key to array.
+   *
+   * @param string $form_key
+   *   The form form key.
+   *
+   * @param array
+   *   The parent key converted to an array.
+   */
+  public static function formKeyToArray(string $form_key) {
+    return preg_split('/[\[]/', str_replace(']', '', $form_key));
+  }
+
 }

@@ -192,14 +192,19 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
             ],
           ],
         ];
-
+        // Parent key.
+        $parent_key = 'breakpoints[' . $breakpoint_name . '][wrapper][properties]';
         // Display properties.
         $rows = [];
-        //$elements = $this->getElements();
+        $properties = $this->getProperties($parent_key);
+        $delta = count($properties);
+        foreach ($properties as $property) {
+          $rows[] = $this->getPropertyRow($property, $delta);
+        }
         $form['breakpoints'][$breakpoint_name]['wrapper']['properties'] = [
           '#type' => 'table',
           '#sort' => TRUE,
-          '#header' => [$this->t('Sort'), $this->t('Property'), $this->t('Operations')],
+          '#header' => [$this->t('Title'), $this->t('Key'), $this->t('Property'), $this->t('Field type'), $this->t('Operations')],
           '#num_lines' => '',
           '#tabledrag' => [
             [
@@ -216,13 +221,13 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
               'group' => 'row-weight',
             ],
           ],
-        ];
+        ] + $rows;
 
         $dialog_options = [
           'width' => 800,
         ];
 
-        $parent_key = 'breakpoints[' . $breakpoint_name . '][wrapper][properties]';
+
         $form['breakpoints'][$breakpoint_name]['wrapper']['add_property'] = [
           '#type' => 'link',
           '#title' => $this->t('Add property'),

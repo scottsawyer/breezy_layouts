@@ -27,4 +27,18 @@ interface BreezyLayoutsVariantInterface extends ConfigEntityInterface {
    */
   public function setPluginId($pluginId);
 
+  /**
+   * Set element properties.
+   *
+   * @param string $key
+   *   The element key.
+   * @param array $properties
+   *   The element properties.
+   * @param string $parent_key
+   *   The parent key.
+   *
+   * @return $this
+   */
+  public function setElementProperties($key, array $properties, $parent_key = '');
+
 }

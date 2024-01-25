@@ -2,11 +2,13 @@
 
 namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Variant;
 
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
+use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 
 /**
  * Provides a base variant plugin class.
@@ -136,10 +138,101 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    * @return array
    *   An array of elements for a given key.
    */
-  protected function getElements() {
+  protected function getElements(string $parent_key) {
     $elements = [];
-    // @todo Get elements from variant.
+
     return $elements;
   }
+
+  /**
+   * Get properties from configuration.
+   *
+   * @param string $parent_key
+   *   The parent key.
+   *
+   * @return array
+   *   An array of properties for a given key.
+   */
+  public function getProperties(string $parent_key) {
+    $parent_array = BreezyLayoutsElementHelper::formKeyToArray($parent_key);
+    $configuration = $this->getConfiguration();
+    $properties = NestedArray::getValue($configuration, $parent_array);
+    if ($properties) {
+      return $properties;
+    }
+    return [];
+  }
+
+  /**
+   * Get property row.
+   *
+   * Builds a row for the Variant plugin properties table.
+   *
+   * @param array $property
+   *   The configured property.
+   * @param int $delta
+   *   The row weight.
+   *
+   * @return array
+   *   The property in a row format.
+   */
+  public function getPropertyRow(array $property, int $delta) {
+    $row = [];
+
+    $key = key($property);
+    $title = $property['element']['title'] ?? 'missing';
+    $type = $property['element']['type'] ?? 'missing';
+    $property_name = $property['property'] ?? 'missing';
+
+    $row_class = ['draggable'];
+
+    $row['#attributes']['data-breezy-layouts-key'] = '';
+    $row['#attributes']['data-breezy-layouts-type'] = $type;
+
+    $row['#attributes']['class'] = $row_class;
+
+    $row['title'] = [
+        '#markup' => $title,
+    ];
+
+    $row['key'] = [
+      '#markup' => $key,
+    ];
+
+    $row['property'] = [
+        '#markup' => $property_name,
+    ];
+
+    $row['type'] = [
+        '#markup' => $type,
+    ];
+
+    $row['weight'] = [
+      '#type' => 'weight',
+      '#title' => $this->t('Weight for @title', ['@title' => $title]),
+      '#title_display' => 'invisible',
+      '#default_value' => $property['weight'] ?? 0,
+      '#wrapper_attributes' => ['class' => ['breezy-layouts-tabledrag-hide']],
+      '#attributes' => [
+        'class' => ['row-weight'],
+      ],
+      '#delta' => $delta,
+    ];
+
+    $row['operations'] = [
+      '#markup' => $this->t('Operation'),
+    ];
+
+    return $row;
+  }
+
+  /**
+   * Build properties table.
+   *
+   * @param string $parent_key
+   *
+   */
+
+
 
 }

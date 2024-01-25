@@ -3,6 +3,7 @@
 namespace Drupal\breezy_layouts\Form;
 
 use Drupal\breakpoint\BreakpointManagerInterface;
+use Drupal\breezy_layouts\Form\BreezyLayoutsEntityAjaxFormTrait;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityWithPluginCollectionInterface;
 use Drupal\Core\Entity\EntityForm;
@@ -17,6 +18,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Form for editing Breezy Layouts Variant entities.
  */
 class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionInterface {
+
+  use BreezyLayoutsEntityAjaxFormTrait;
 
   /**
    * Drupal\Core\Config\ConfigFactoryInterface definition.
@@ -171,7 +174,8 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
       ];
       $form['plugin_configuration'] = $plugin->buildConfigurationForm($plugin_form, $form_state);
     }
-    return $form;
+
+    return $this->buildAjaxForm($form, $form_state);
   }
 
   /**

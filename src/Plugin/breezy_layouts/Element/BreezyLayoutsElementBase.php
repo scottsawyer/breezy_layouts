@@ -124,16 +124,15 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
 
     $element = $form_state->get('element');
     $type = $element['#type'];
-    $form['type'] = [
-      '#type' => 'value',
-      '#value' => $type,
-      '#parents' => ['properties', 'type'],
-    ];
 
     $form['element'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Element settings'),
       '#weight' => -50,
+    ];
+    $form['element']['type'] = [
+      '#type' => 'hidden',
+      '#value' => $type,
     ];
     $form['element']['title'] = [
       '#type' => 'textfield',

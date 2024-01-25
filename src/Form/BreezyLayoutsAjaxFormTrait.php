@@ -12,7 +12,10 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\EventSubscriber\MainContentViewSubscriber;
+use Drupal\breezy_layouts\Ajax\BreezyLayoutsCloseDialogCommand;
+use Drupal\breezy_layouts\Ajax\BreezyLayoutsRefreshCommand;
 use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Trait form ajax support.
@@ -24,6 +27,22 @@ trait BreezyLayoutsAjaxFormTrait {
    */
   protected function isAjax() {
     return $this->isDialog();
+  }
+
+  /**
+   * Cancel form #ajax callback.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   *
+   * @return \Drupal\Core\Ajax\AjaxResponse
+   *   An Ajax response that display validation error messages or redirects
+   *   to a URL
+   */
+  public function cancelAjaxForm(array &$form, FormStateInterface $form_state) {
+
   }
 
   /**
@@ -62,6 +81,19 @@ trait BreezyLayoutsAjaxFormTrait {
   }
 
   /**
+   * Is the current request for an off canvas dialog.
+   *
+   * @return bool
+   *   TRUE if the current request is for an off canvas dialog.
+   */
+  protected function isOffCanvasDialog() {
+    $wrapper_format = $this->getRequest()
+      ->get(MainContentViewSubscriber::WRAPPER_FORMAT);
+    return (in_array($wrapper_format, ['drupal_dialog.off_canvas'])) ? TRUE : FALSE;
+  }
+
+
+  /**
    * Get the form's Ajax wrapper id.
    *
    * @return string
@@ -87,6 +119,8 @@ trait BreezyLayoutsAjaxFormTrait {
    *   The form with Ajax callbacks.
    */
   protected function buildAjaxForm(array &$form, FormStateInterface $form_state, array $settings = []) {
+    $logger = \Drupal::logger('ajax_form_trait_buildAjaxForm');
+    $logger->notice('wrapper: ' . $this->getWrapperId());
     if (!$this->isAjax()) {
       return $form;
     }
@@ -116,7 +150,7 @@ trait BreezyLayoutsAjaxFormTrait {
     $wrapper_id = $this->getWrapperId();
     $wrapper_attributes = [];
     $wrapper_attributes['id'] = $wrapper_id;
-    $wrapper_attributes['class'] = ['webform-ajax-form-wrapper'];
+    $wrapper_attributes['class'] = ['breezy-layouts-ajax-form-wrapper'];
     if (isset($settings['effect'])) {
       $wrapper_attributes['data-effect'] = $settings['effect'];
     }
@@ -134,7 +168,7 @@ trait BreezyLayoutsAjaxFormTrait {
 
     // Add Ajax library which contains 'Scroll to top' Ajax command and
     // Ajax callback for confirmation back to link.
-    //$form['#attached']['library'][] = 'webform/webform.ajax';
+    $form['#attached']['library'][] = 'breezy_layouts/breezy_layouts.ajax';
 
     // Add validate Ajax form.
     $form['#validate'][] = '::validateAjaxForm';
@@ -155,15 +189,95 @@ trait BreezyLayoutsAjaxFormTrait {
    *   to a URL
    */
   public function submitAjaxForm(array &$form, FormStateInterface $form_state) {
+    $logger = \Drupal::logger('ajax_trait_submitAjaxForm');
+    $logger->notice('wrapper: ' . $this->getWrapperId());
+
+    if ($form_state->hasAnyErrors()) {
+      // Display validation errors and scroll to the top of the page.
+      $response = $this->replaceForm($form, $form_state);
+    }
+    elseif ($form_state->getResponse() instanceof AjaxResponse) {
+      // Allow developers via form_alter hooks to set their own Ajax response.
+      // The custom Ajax response could be used to close modals and refresh
+      // selected regions and blocks on the page.
+      $response = $form_state->getResponse();
+    }
+    elseif ($form_state->isRebuilding()) {
+      // Rebuild form.
+      $response = $this->replaceForm($form, $form_state);
+    }
+    elseif ($redirect_url = $this->getFormStateRedirectUrl($form_state)) {
+      $logger->notice('$redirect_url: ' . $redirect_url);
+      // Redirect to URL.
+      $response = $this->createAjaxResponse($form, $form_state);
+      $response->addCommand(new BreezyLayoutsCloseDialogCommand());
+      $response->addCommand(new BreezyLayoutsRefreshCommand($redirect_url));
+    }
+    else {
+      $response = $this->cancelAjaxForm($form, $form_state);
+    }
+
     // Remove #id from wrapper so that the form is still wrapped in a <div>
     // and triggerable.
     // @see js/webform.element.details.toggle.js
-    $form['#prefix'] = '<div>';
+    //$form['#prefix'] = '<div>';
 
-    $response = new AjaxResponse();
+    //$response = new AjaxResponse();
     //$response->addCommand(new HtmlCommand('#breezy-layouts-ui-element-ajax-wrapper', $form));
-    $response->addCommand(new HtmlCommand('#' . $this->getWrapperId(), $form));
+    //$response->addCommand(new HtmlCommand('#' . $this->getWrapperId(), $form));
     return $response;
+  }
+
+  /**
+   * Get redirect URL from the form's state.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   *
+   * @return bool|\Drupal\Core\GeneratedUrl|string
+   *   The redirect URL or FALSE if the form is not redirecting.
+   */
+  protected function getFormStateRedirectUrl(FormStateInterface $form_state) {
+    // Always check the ?destination which is used by the off-canvas/system tray.
+    if ($this->getRequest()->get('destination')) {
+      $destination = $this->getRedirectDestination()->get();
+      return (strpos($destination, $destination) === 0) ? $destination : base_path() . $destination;
+    }
+
+    // ISSUE:
+    // Can't get the redirect URL from the form state during an AJAX submission.
+    //
+    // WORKAROUND:
+    // Re-enable redirect, grab the URL, and then disable again.
+    $no_redirect = $form_state->isRedirectDisabled();
+    $form_state->disableRedirect(FALSE);
+    $redirect = $form_state->getResponse() ?: $form_state->getRedirect();
+    $form_state->disableRedirect($no_redirect);
+
+    if ($redirect instanceof RedirectResponse) {
+      return $redirect->getTargetUrl();
+    }
+    elseif ($redirect instanceof Url) {
+      return $redirect->setAbsolute()->toString();
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  /**
+   * Create an AjaxResponse object.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   *
+   * @return \Drupal\Core\Ajax\AjaxResponse
+   *   An AjaxResponse object
+   */
+  protected function createAjaxResponse(array $form, FormStateInterface $form_state) {
+    return new AjaxResponse();
   }
 
 

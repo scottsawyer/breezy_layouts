@@ -12,6 +12,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Url;
 use Drupal\Component\Serialization\Json;
+use Drupal\breezy_layouts\Form\BreezyLayoutsDialogFormTrait;
 use Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -19,6 +20,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Add property form.
  */
 class BreezyLayoutsPropertyAddForm extends FormBase {
+
+  use BreezyLayoutsDialogFormTrait;
 
   /**
    * Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface

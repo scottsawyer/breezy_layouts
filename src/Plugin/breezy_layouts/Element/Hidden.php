@@ -22,7 +22,7 @@ class Hidden extends BreezyLayoutsElementBase implements BreezyLayoutsElementInt
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
-    $form['value'] = [
+    $form['element']['default_value'] = [
       '#type' => 'select',
       '#title' => $this->t('Value'),
       '#default_value' => '',

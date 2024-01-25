@@ -30,30 +30,11 @@ class BreezyLayoutsElementAddForm extends BreezyLayoutsElementFormBase {
 
     $element_plugin = $this->getElementPlugin();
 
-    $form['test'] = [
-      '#type' => 'container',
-    ];
-    $form['test']['property'] = [
-      '#markup' => '$property: ' . $this->property . '<br>',
-      '#allowed_tags' => ['br'],
-    ];
-    $form['test']['type'] = [
-      '#markup' => '$type: ' . $type,
-    ];
+    $form['#title'] = $this->t('Add @label', ['@label' => $element_plugin->label()]);
     $form_state->set('property', $this->property);
 
     $form = parent::buildForm($form, $form_state, $breezy_layouts_variant, $key, $this->parentKey, $type);
 
-    /**
-    // Get the plugin configuration.
-    $element_plugin_configuration = ['property' => $this->property];
-    $element = $this->elementManager->createInstance($type, $element_plugin_configuration);
-    $element_form = [
-      '#type' => 'container',
-      '#tree' => TRUE,
-    ];
-    $form['element_plugin_configuration'] = $element->form($element_form, $form_state);
-    /**/
     return $form;
   }
 }
