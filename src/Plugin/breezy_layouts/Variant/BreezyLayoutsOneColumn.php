@@ -3,6 +3,7 @@
 namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Variant;
 
 use Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface;
+use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\breakpoint\BreakpointManagerInterface;
 use Drupal\Core\Url;
@@ -92,8 +93,11 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
     $form = parent::buildConfigurationForm($form, $form_state);
     $variant = $form_state->get('variant');
     $breakpoints_wrapper_id = 'breakpoints-wrapper';
-    //$properties = $this->configuration['breakpoints'][$breakpoint_name]['wrapper']['properties'];
-    $form['test'] = [
+    $form['debug'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Debug'),
+    ];
+    $form['debug']['config'] = [
       '#markup' => 'configuration: <pre>' . print_r($this->configuration, TRUE) . '</pre>',
       '#allowed_tags' => ['pre'],
     ];
@@ -193,51 +197,17 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
           ],
         ];
         // Parent key.
-        $parent_key = 'breakpoints[' . $breakpoint_name . '][wrapper][properties]';
+        $parent_array = [
+          'breakpoints',
+          $breakpoint_name,
+          'wrapper',
+          'properties',
+        ];
+        $properties = $this->getProperties($parent_array);
         // Display properties.
-        $rows = [];
-        $properties = $this->getProperties($parent_key);
-        $delta = count($properties);
-        foreach ($properties as $property) {
-          $rows[] = $this->getPropertyRow($property, $delta);
-        }
-        $form['breakpoints'][$breakpoint_name]['wrapper']['properties'] = [
-          '#type' => 'table',
-          '#sort' => TRUE,
-          '#header' => [$this->t('Title'), $this->t('Key'), $this->t('Property'), $this->t('Field type'), $this->t('Operations')],
-          '#num_lines' => '',
-          '#tabledrag' => [
-            [
-              'action' => 'match',
-              'relationship' => 'parent',
-              'group' => 'row-parent-key',
-              'source' => 'row-key',
-              'hidden' => TRUE,
-              'limit' => FALSE,
-            ],
-            [
-              'action' => 'order',
-              'relationship' => 'sibling',
-              'group' => 'row-weight',
-            ],
-          ],
-        ] + $rows;
+        $form['breakpoints'][$breakpoint_name]['wrapper']['properties'] = $this->buildPropertiesTable($parent_array, $properties);
 
-        $dialog_options = [
-          'width' => 800,
-        ];
-
-
-        $form['breakpoints'][$breakpoint_name]['wrapper']['add_property'] = [
-          '#type' => 'link',
-          '#title' => $this->t('Add property'),
-          '#url' => Url::fromRoute('entity.breezy_layouts_ui.property.add', ['breezy_layouts_variant' => $variant->id()], ['query' => ['parent' => $parent_key]]),
-          '#attributes' => [
-            'class' => ['use-ajax'],
-            'data-dialog-type' => 'modal',
-            'data-dialog-options' => json_encode($dialog_options),
-          ],
-        ];
+        $form['breakpoints'][$breakpoint_name]['wrapper']['add_property'] = $this->addPropertyLink($variant, $parent_array);
 
         $form['breakpoints'][$breakpoint_name]['main'] = [
           '#type' => 'fieldset',
@@ -248,6 +218,20 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
             ],
           ],
         ];
+
+        // Parent key.
+        $parent_array = [
+          'breakpoints',
+          $breakpoint_name,
+          'main',
+          'properties',
+        ];
+        $properties = $this->getProperties($parent_array);
+        $form['breakpoints'][$breakpoint_name]['main']['properties'] = $this->buildPropertiesTable($parent_array, $properties);
+
+        $form['breakpoints'][$breakpoint_name]['main']['add_property'] = $this->addPropertyLink($variant, $parent_array);
+
+
 
       }
     }

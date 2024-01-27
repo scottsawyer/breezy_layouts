@@ -87,8 +87,8 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
   /**
    * {@inheritdoc}
    */
-  public function form(array $form, FormStateInterface $form_state) {
-    $form = parent::form($form, $form_state);
+  public function buildForm(array $form, FormStateInterface $form_state) {
+    $form = parent::buildForm($form, $form_state);
     $input = $form_state->getUserInput();
     $plugin_form_wrapper = 'plugin-form-wrapper';
 
@@ -175,7 +175,19 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
       $form['plugin_configuration'] = $plugin->buildConfigurationForm($plugin_form, $form_state);
     }
 
+    //$form = parent::buildForm($form, $form_state);
+
     return $this->buildAjaxForm($form, $form_state);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function actionsElement(array $form, FormStateInterface $form_state) {
+    $form = parent::actionsElement($form, $form_state);
+    $form['submit']['#value'] = $this->t('Save elements');
+    unset($form['delete']);
+    return $form;
   }
 
   /**

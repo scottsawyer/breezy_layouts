@@ -59,16 +59,15 @@ trait BreezyLayoutsEntityAjaxFormTrait {
     if (!$this->getEntity()->isNew()) {
       $actions['reset'] = [
         '#type' => 'submit',
-        '#value' => $this->t('Reset'),
+        '#value' => $this->t('Reset Pickles'),
         '#submit' => ['::noSubmit'],
         '#validate' => ['::noSubmit'],
-        '#attributes' => ['class' => ['breeazy-layouts-ajax-refresh']],
+        '#attributes' => ['class' => ['breezy-layouts-ajax-refresh']],
         '#weight' => 100,
       ];
     }
     return $actions;
   }
-
 
   /**
    * {@inheritdoc}

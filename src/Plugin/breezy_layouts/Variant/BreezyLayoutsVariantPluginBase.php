@@ -2,9 +2,11 @@
 
 namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Variant;
 
+use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
+use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
@@ -147,16 +149,17 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
   /**
    * Get properties from configuration.
    *
-   * @param string $parent_key
+   * @param array $parent_key
    *   The parent key.
    *
    * @return array
    *   An array of properties for a given key.
    */
-  public function getProperties(string $parent_key) {
-    $parent_array = BreezyLayoutsElementHelper::formKeyToArray($parent_key);
+  public function getProperties(array $parent_key) {
+    //$parent_array = BreezyLayoutsElementHelper::formKeyToArray($parent_key);
     $configuration = $this->getConfiguration();
-    $properties = NestedArray::getValue($configuration, $parent_array);
+    //$properties = NestedArray::getValue($configuration, $parent_array);
+    $properties = NestedArray::getValue($configuration, $parent_key);
     if ($properties) {
       return $properties;
     }
@@ -168,6 +171,8 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    *
    * Builds a row for the Variant plugin properties table.
    *
+   * @param string $key
+   *   The property key.
    * @param array $property
    *   The configured property.
    * @param int $delta
@@ -176,10 +181,10 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    * @return array
    *   The property in a row format.
    */
-  public function getPropertyRow(array $property, int $delta) {
+  public function getPropertyRow(string $key, array $property, int $delta) {
+
     $row = [];
 
-    $key = key($property);
     $title = $property['element']['title'] ?? 'missing';
     $type = $property['element']['type'] ?? 'missing';
     $property_name = $property['property'] ?? 'missing';
@@ -219,6 +224,11 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
       '#delta' => $delta,
     ];
 
+    /*
+    $element_edit_url = Url::fromRoute('entity.breezy_layouts_ui.element.edit', [
+      'breezy_layouts_variant' =>
+    ]);
+    /**/
     $row['operations'] = [
       '#markup' => $this->t('Operation'),
     ];
@@ -229,10 +239,106 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
   /**
    * Build properties table.
    *
-   * @param string $parent_key
+   * @param array $parent_key
+   *   An array of parents.
+   * @param array $properties
+   *   An array of properties.
    *
+   * @return array
+   *   An array representing a variant properties table.
    */
+  public function buildPropertiesTable(array $parent_key, array $properties = []) {
 
+    $rows = [];
+    if (!empty($properties)) {
+      $delta = count($properties);
+      foreach ($properties as $key => $property) {
+        $rows[] = $this->getPropertyRow($key, $property, $delta);
+      }
+    }
+    $table = [
+      '#type' => 'table',
+      '#sort' => TRUE,
+      '#header' => $this->getPropertiesTableHeader(),
+      '#empty' => $this->t('Add CSS properties.'),
+      '#attributes' => [
+        'class' => ['breezy-layouts-properties-form'],
+      ],'#tabledrag' => [
+        [
+          'action' => 'match',
+          'relationship' => 'parent',
+          'group' => 'row-parent-key',
+          'source' => 'row-key',
+          'hidden' => TRUE,
+          'limit' => FALSE,
+        ],
+        [
+          'action' => 'order',
+          'relationship' => 'sibling',
+          'group' => 'row-weight',
+        ],
+      ],
+    ] + $rows;
 
+    return $table;
+  }
+
+  /**
+   * Build variant properties table header.
+   *
+   * @return array
+   *   An array of table header items.
+   */
+  protected function getPropertiesTableHeader() {
+    $header = [];
+    $header['title'] = $this->t('Title');
+    $header['key'] = $this->t('Key');
+    $header['property'] = $this->t('CSS Property');
+    $header['type'] = $this->t('Field type');
+    $header['weight'] = $this->t('Weight');
+    $header['operations'] = $this->t('Operations');
+    return $header;
+  }
+
+  /**
+   * Add property link.
+   *
+   * @param \Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface $variant
+   *   The variant entity.
+   * @param array $parent_key
+   *   The parent key.
+   *
+   * @return array
+   *   The add property link.
+   */
+  protected function addPropertyLink(BreezyLayoutsVariantInterface $variant, array $parent_key) {
+    $parent = json_encode($parent_key);
+    return [
+      '#type' => 'link',
+      '#title' => $this->t('Add property'),
+      '#url' => Url::fromRoute('entity.breezy_layouts_ui.property.add', ['breezy_layouts_variant' => $variant->id()], ['query' => ['parent' => $parent]]),
+      '#attributes' => [
+        'class' => ['use-ajax'],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => $this->getDialogOptions(),
+      ],
+    ];
+  }
+
+  /**
+   * Get dialog options.
+   *
+   * @param array $options
+   *   An array of options.
+   *
+   * @return string
+   *   A JSON encoded string of dialog options.
+   */
+  public function getDialogOptions(array $options = []) {
+    $default_options = [
+      'width' => 800,
+    ];
+    return json_encode(array_merge($options, $default_options));
+  }
 
 }

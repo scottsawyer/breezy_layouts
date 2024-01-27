@@ -32,6 +32,13 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
   protected $variant = NULL;
 
   /**
+   * The element.
+   *
+   * @var array
+   */
+  protected $element = [];
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {

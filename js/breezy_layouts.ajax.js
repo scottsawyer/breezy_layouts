@@ -161,26 +161,19 @@
    *   The XMLHttpRequest status.
    */
   Drupal.AjaxCommands.prototype.breezylayoutsRefresh = function (ajax, response, status) {
-    console.log('breezylayoutsRefresh');
     // Get URL path name.
     // @see https://stackoverflow.com/questions/6944744/javascript-get-portion-of-url-path
     var a = document.createElement('a');
     a.href = response.url;
     var forceReload = (response.url.match(/\?reload=([^&]+)($|&)/)) ? RegExp.$1 : null;
     if (forceReload) {
-      console.log('forceReload: ' + forceReload);
       response.url = response.url.replace(/\?reload=([^&]+)($|&)/, '');
       this.redirect(ajax, response, status);
       return;
     }
-    console.log('a.pathname: ' + a.pathname);
-    console.log('window.location.pathname: ' + window.location.pathname);
-    console.log('$(.breezy-layouts-ajax-refresh).length(): ' + $('.breezy-layouts-ajax-refresh').length);
     if (a.pathname === window.location.pathname && $('.breezy-layouts-ajax-refresh').length) {
-      console.log('paths match, selector.length is true');
       updateKey = (response.url.match(/[?|&]update=([^&]+)($|&)/)) ? RegExp.$1 : null;
       addElement = (response.url.match(/[?|&]add_element=([^&]+)($|&)/)) ? RegExp.$1 : null;
-      console.log('updateKey: ' + updateKey);
       $('.breezy-layouts-ajax-refresh').trigger('click');
     }
     else {

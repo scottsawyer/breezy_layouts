@@ -119,8 +119,6 @@ trait BreezyLayoutsAjaxFormTrait {
    *   The form with Ajax callbacks.
    */
   protected function buildAjaxForm(array &$form, FormStateInterface $form_state, array $settings = []) {
-    $logger = \Drupal::logger('ajax_form_trait_buildAjaxForm');
-    $logger->notice('wrapper: ' . $this->getWrapperId());
     if (!$this->isAjax()) {
       return $form;
     }
@@ -174,6 +172,18 @@ trait BreezyLayoutsAjaxFormTrait {
     $form['#validate'][] = '::validateAjaxForm';
 
     return $form;
+  }
+
+  /**
+   * Validation form for #ajax callback.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public function validateAjaxForm(array &$form, FormStateInterface $form_state) {
+
   }
 
   /**
@@ -263,6 +273,16 @@ trait BreezyLayoutsAjaxFormTrait {
     else {
       return FALSE;
     }
+  }
+
+  /**
+   * Empty submit callback used to only have the submit button to use an #ajax submit callback.
+   *
+   * This allows modal dialog to using ::submitCallback to validate and submit
+   * the form via one ajax request.
+   */
+  public function noSubmit(array &$form, FormStateInterface $form_state) {
+    // Do nothing.
   }
 
   /**
