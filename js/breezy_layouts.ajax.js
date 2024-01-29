@@ -30,7 +30,14 @@
 
         if ($element_settings.dialogRenderer === 'off_canvas') {
           $(this).on('click', function () {
-            $('.ui-dialog:visible').find('.ui-dialog-content').dialog('close');
+            var $dialogs = $('.ui-dialog:visible').find('.ui-dialog-content');
+            if ($dialogs.length) {
+              $dialogs.each(function() {
+                if ($.isFunction($.fn.dialog)) {
+                  $(this).dialog('close');
+                }
+              });
+            }
           });
         }
       });
@@ -91,7 +98,7 @@
       $element.find(':tabbable:not(.tabledrag-handle)').eq(0).trigger('focus');
 
       // Scroll element into view.
-      Drupal.breezylayoutsScrolledIntoView($element);
+      //Drupal.breezylayoutsScrolledIntoView($element);
     }
     else {
       // Focus main content.

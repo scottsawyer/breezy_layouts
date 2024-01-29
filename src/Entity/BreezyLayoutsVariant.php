@@ -217,7 +217,12 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
     // Get variant plugin, determine where the $key and $parent_key goes, inject the new element, set it's properties.
     $plugin_configuration = $this->getPluginConfiguration();
     $existing_properties = NestedArray::getValue($plugin_configuration, $parent_array);
-    $existing_properties[$key] = $properties;
+    if (is_array($existing_properties)) {
+      $existing_properties[$key] = $properties;
+    }
+    else {
+      $existing_properties = [$key => $properties];
+    }
     NestedArray::setValue($plugin_configuration, $parent_array, $existing_properties);
     $this->setPluginConfiguration($plugin_configuration);
     return $this;
@@ -269,6 +274,19 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
     }
 
     return FALSE;
+  }
+
+  /**
+   * Delete element.
+   *
+   * @param string $key
+   *   The element key.
+   * @param array $parent_key
+   *   The element parent.
+   */
+  public function deleteElement($key, array $parent_key) {
+    $configuration = $this->getPluginConfiguration();
+    NestedArray::unsetValue($configuration, $parent_key, $key);
   }
 
 }

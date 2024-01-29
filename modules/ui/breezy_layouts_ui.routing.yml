@@ -53,7 +53,21 @@ entity.breezy_layouts_ui.element.add_form:
     _admin_route: TRUE
 
 entity.breezy_layouts_ui.element.edit_form:
-  path: 'admin/config/content/breezy-layouts/variant/{breezy_layouts_variant}/element/{key}/edit'
+  path: 'admin/config/content/breezy-layouts/variant/{breezy_layouts_variant}/element/{type}/edit'
   defaults:
-    _form: 'Drupal\breezy_layouts_ui\Form\BreezyLayoutsElementForm'
+    _form: 'Drupal\breezy_layouts_ui\Form\BreezyLayoutsElementEditForm'
     _title: 'Edit element'
+  requirements:
+    _permission: 'administer breezy layouts'
+  options:
+    _admin_route: TRUE
+
+entity.breezy_layouts_ui.element.delete_form:
+  path: 'admin/config/content/breezy-layouts/variant/{breezy_layouts_variant}/element/{type}/delete'
+  defaults:
+    _form: 'Drupal\breezy_layouts_ui\Form\BreezyLayoutsElementDeleteForm'
+    _title: 'Delete element'
+  requirements:
+    _permission: 'administer breezy layouts'
+  options:
+    _admin_route: TRUE

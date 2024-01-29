@@ -6,9 +6,11 @@ use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\PluginBase;
+use Drupal\Core\Render\Element\Form;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Component\Serialization\Json;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 
@@ -29,12 +31,23 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
   const CONFIGURATION_FORM_STATE_KEY = 'breezy_layouts.breezy_layouts_variant';
 
   /**
+   * The parent config entity.
+   *
+   * @var string
+   */
+  protected $parentEntity;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(array $configuration, $plugin_id, $plugin_definition) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->configuration += $this->defaultConfiguration();
+    if (array_key_exists('_entity', $configuration)) {
+      $this->parentEntity = $configuration['_entity'];
+      unset($configuration['_entity']);
+    }
   }
 
   /**
@@ -88,6 +101,13 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    */
   public function getLayoutId() {
     return $this->pluginDefinition['layout'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getParentEntity() {
+    return $this->parentEntity;
   }
 
   /**
@@ -177,11 +197,13 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    *   The configured property.
    * @param int $delta
    *   The row weight.
+   * @param array $parent_key
+   *   The parent key array.
    *
    * @return array
    *   The property in a row format.
    */
-  public function getPropertyRow(string $key, array $property, int $delta) {
+  public function getPropertyRow(string $key, array $property, int $delta, array $parent_key) {
 
     $row = [];
 
@@ -224,13 +246,51 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
       '#delta' => $delta,
     ];
 
-    /*
-    $element_edit_url = Url::fromRoute('entity.breezy_layouts_ui.element.edit', [
-      'breezy_layouts_variant' =>
+    $query = [
+      'key' => $key,
+      'property' => $property_name,
+      'parent' => Json::encode($parent_key),
+    ];
+
+    /**/
+    $element_edit_url = Url::fromRoute('entity.breezy_layouts_ui.element.edit_form', [
+      'breezy_layouts_variant' => $this->parentEntity,
+      'type' => $type,
+    ],
+    [
+      'query' => $query,
+    ]);
+    $element_delete_url = Url::fromRoute('entity.breezy_layouts_ui.element.delete_form', [
+      'breezy_layouts_variant' => $this->parentEntity,
+      'type' => $type,
+    ],
+    [
+      'query' => $query,
     ]);
     /**/
     $row['operations'] = [
-      '#markup' => $this->t('Operation'),
+      '#type' => 'operations',
+      '#prefix' => '<div class="breezy-layouts-dropbutton">',
+      '#suffix' => '</div>',
+    ];
+    $row['operations']['#links']['edit'] = [
+      'title' => $this->t("Edit"),
+      'url' => $element_edit_url,
+      'attributes' => [
+        'class' => ['breezy-layouts-ajax-link'],
+        'data-dialog-type' => 'dialog',
+        'data-dialog-renderer' => 'off_canvas',
+        'data-dialog-options' => Json::encode(['width' => 550]),
+      ],
+    ];
+    $row['operations']['#links']['delete'] = [
+      'title' => $this->t("Delete"),
+      'url' => $element_delete_url,
+      'attributes' => [
+        'class' => ['breezy-layouts-ajax-link'],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => Json::encode(['width' => 550]),
+      ],
     ];
 
     return $row;
@@ -253,7 +313,7 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
     if (!empty($properties)) {
       $delta = count($properties);
       foreach ($properties as $key => $property) {
-        $rows[] = $this->getPropertyRow($key, $property, $delta);
+        $rows[] = $this->getPropertyRow($key, $property, $delta, $parent_key);
       }
     }
     $table = [
@@ -339,6 +399,30 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
       'width' => 800,
     ];
     return json_encode(array_merge($options, $default_options));
+  }
+
+  /**
+   * Variant save.
+   *
+   * Merges $form_state with $plugin_configuration.
+   *
+   * @param array $plugin_configuration.
+   *   The plugin configuration.
+   * @param array $form_values
+   *   The form values.
+   *
+   * @return array
+   *   The merged form values / configuration.
+   *
+   * @see \Drupal\breezy_layouts\Form\BreezyLayoutsVariantForm.
+   */
+  public function mergeFormState(array $configuration, array $form_values) {
+    $breakpoints = $configuration['breakpoints'];
+    foreach ($breakpoints as $breakpoint_name => $breakpoint_settings) {
+
+    }
+
+    return $configuration.
   }
 
 }

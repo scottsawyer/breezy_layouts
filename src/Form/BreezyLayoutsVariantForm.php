@@ -159,6 +159,9 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
       if (!$plugin_configuration) {
         $plugin_configuration = [];
       }
+      if (!isset($plugin_configuration['_entity'])) {
+        $plugin_configuration['_entity'] = $variant->id();
+      }
       /** @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface $plugin */
       $plugin = $this->variantPluginManager->createInstance($plugin_id, $plugin_configuration);
       $form['layout'] = [
@@ -198,7 +201,7 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
     $variant = $this->entity;
     $status = $variant->save();
 
-    $form_state->setRedirect('entity.breezy_layouts_variant.collection');
+    // @todo Include a friendly message.
   }
 
   /**
@@ -225,7 +228,9 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
     }
 
     if (isset($values['plugin_configuration']) && !empty($values['plugin_configuration']) && !empty($values['plugin_id'])) {
-      $plugin_configuration = $this->getPluginConfiguration($values['plugin_id'], $form['plugin_configuration'], $form_state);
+      // @todo Merge $form_state with $plugin_configuration.
+      //$plugin_configuration = $this->getPluginConfiguration($values['plugin_id'], $form['plugin_configuration'], $form_state);
+      $plugin_configuration = $entity->getPluginConfiguration();
       $entity->set('plugin_configuration', $plugin_configuration);
     }
   }
@@ -246,8 +251,11 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
   protected function getPluginConfiguration(string $pluginId, array $formField, FormStateInterface $formState) : array {
+    /** @var \Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface $variant */
+    $variant = $this->entity;
+    $configuration = ['_entity' => $variant->id()];
     /** @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface $plugin */
-    $plugin = $this->variantPluginManager->createInstance($pluginId);
+    $plugin = $this->variantPluginManager->createInstance($pluginId, $configuration);
 
     $plugin->submitConfigurationForm($formField, $formState);
 

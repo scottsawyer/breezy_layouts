@@ -14,6 +14,14 @@ use Drupal\Core\Plugin\PluginFormInterface;
 interface BreezyLayoutsElementInterface extends ConfigurableInterface, ContainerFactoryPluginInterface, PluginFormInterface {
 
   /**
+   * Get default properties.
+   *
+   * @return array
+   *   An associative array containing default element properties.
+   */
+  public function getDefaultProperties();
+
+  /**
    * Retrieves the plugin's label.
    *
    * @return string
@@ -28,6 +36,17 @@ interface BreezyLayoutsElementInterface extends ConfigurableInterface, Container
    *   The plugin's translated description; or NULL if it has none.
    */
   public function getDescription();
+
+  /**
+   * Checks if the element carries a value.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @return bool
+   *   TRUE if the element carries a value.
+   */
+  public function isInput(array $element);
 
   /**
    * Provides a form to configure the element.
@@ -50,9 +69,47 @@ interface BreezyLayoutsElementInterface extends ConfigurableInterface, Container
    * @thows \Exception
    */
   public function setEntities(EntityInterface $entity);
+
   /**
    * Reset variant entity.
    */
   public function resetEntities();
+
+  /**
+   * Get an element's default property value.
+   *
+   * @param string $property_name
+   *   An element's property name.
+   *
+   * @return mixed
+   *   An element's default property value or NULL if default property does not
+   *   exist.
+   */
+  public function getDefaultProperty($property_name);
+
+  /**
+   * Get an element's property value.
+   *
+   * @param array $element
+   *   An element.
+   * @param string $property_name
+   *   An element's property name.
+   *
+   * @return mixed
+   *   An element's property value, default value, or NULL if
+   *   property does not exist.
+   */
+  public function getElementProperty(array $element, $property_name);
+
+  /**
+   * Determine if the element supports a specified property.
+   *
+   * @param string $property_name
+   *   An element's property name.
+   *
+   * @return bool
+   *   TRUE if the element supports a specified property.
+   */
+  public function hasProperty($property_name);
 
 }

@@ -84,7 +84,7 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, BreezyLayoutsVariantInterface $breezy_layouts_variant = NULL, $key = NULL, $parent_key = NULL, $type = NULL) {
-
+    // Override an element's default value using the $form_state.
     if ($form_state->get('default_value')) {
       $this->element['#default_value'] = $form_state->get('default_value');
     }
@@ -108,7 +108,7 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
     $subform_state = SubformState::createForSubform($form['properties'], $form, $form_state);
     $subform_state->set('element', $this->element);
     $subform_state->set('property', $this->property);
-    $form['properties'] = $element_plugin->form($form['properties'], $subform_state);
+    $form['properties'] = $element_plugin->buildConfigurationForm($form['properties'], $subform_state);
 
     // Set parent key.
     $form['parent_key'] = [
