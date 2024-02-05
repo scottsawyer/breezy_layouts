@@ -202,8 +202,6 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
     // Populate the form.
     $this->setConfigurationFormDefaultValueRecursive($form, $custom_properties);
 
-
-
     return $form;
   }
 
@@ -315,19 +313,22 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
   }
 
   /**
-   * Set an element's configuration webform element default value.
+   * Set an element's configuration element default value.
    *
    * @param array $form
-   *   An element's configuration webform.
+   *   An element's configuration form.
    * @param array $element_properties
    *   The element's properties without hash prefix.
    * @param array $property_element
-   *   The webform input used to set an element's property.
+   *   The form input used to set an element's property.
    * @param string $property_name
    *   THe property's name.
    */
   protected function setConfigurationFormDefaultValue(array &$form, array &$element_properties, array &$property_element, $property_name) {
-    $default_value = $element_properties['element'][$property_name];
+    $default_value = '';
+    if (isset($element_properties['element'][$property_name])) {
+      $default_value = $element_properties['element'][$property_name];
+    }
     $type = $property_element['#type'] ?? NULL;
 
     switch ($type) {

@@ -4,6 +4,7 @@ namespace Drupal\breezy_layouts\Form;
 
 use Drupal\breakpoint\BreakpointManagerInterface;
 use Drupal\breezy_layouts\Form\BreezyLayoutsEntityAjaxFormTrait;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityWithPluginCollectionInterface;
 use Drupal\Core\Entity\EntityForm;
@@ -208,6 +209,7 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
    * {@inheritdoc}
    */
   protected function copyFormValuesToEntity(EntityInterface $entity, array $form, FormStateInterface $form_state) {
+    $logger = \Drupal::logger('copyFormValuesToEntity');
 
     $values = $form_state->getValues();
     if ($this->entity instanceof EntityWithPluginCollectionInterface) {
@@ -228,10 +230,24 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
     }
 
     if (isset($values['plugin_configuration']) && !empty($values['plugin_configuration']) && !empty($values['plugin_id'])) {
-      // @todo Merge $form_state with $plugin_configuration.
-      //$plugin_configuration = $this->getPluginConfiguration($values['plugin_id'], $form['plugin_configuration'], $form_state);
       $plugin_configuration = $entity->getPluginConfiguration();
-      $entity->set('plugin_configuration', $plugin_configuration);
+      $logger->warning('$values[plugin_configuration]: <pre>' . print_r($values['plugin_configuration'], TRUE) . '</pre>');
+      $logger->alert('$plugin_configuration <pre>' . print_r($plugin_configuration, TRUE) . '</pre>');
+      // @todo Merge $form_state with $plugin_configuration.
+      // @see BreezyLayoutsVariantPluginBase::mergeFormState.
+      //$plugin_configuration = $this->getPluginConfiguration($values['plugin_id'], $form['plugin_configuration'], $form_state);
+
+      $breakpoints = $plugin_configuration['breakpoints'];
+      $config_values = [];
+      foreach ($breakpoints as $breakpoint_name => $breakpoint_settings) {
+        if (!$breakpoint_settings['enabled']) {
+          continue;
+        }
+        // Get $properties (fields) from $config.
+        $config_values[$breakpoint_name] = $breakpoint_settings;
+      }
+      $values['plugin_configuration']['breakpoints'] = NestedArray::mergeDeepArray([$values['plugin_configuration']['breakpoints'], $config_values]);
+      $entity->set('plugin_configuration', $values['plugin_configuration']);
     }
   }
 

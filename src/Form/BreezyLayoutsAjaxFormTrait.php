@@ -134,7 +134,7 @@ trait BreezyLayoutsAjaxFormTrait {
 
       $actions = &$form[$element_key];
       foreach (Element::children($actions) as $action_key) {
-        if (BreezyLayoutsElementHelper::isType($actions[$action_key], 'submit')) {
+        if (BreezyLayoutsElementHelper::isType($actions[$action_key], 'submit') && !isset($actions[$action_key]['#ajax'])) {
           $actions[$action_key]['#ajax'] = [
               'callback' => '::submitAjaxForm',
               'event' => 'click',

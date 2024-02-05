@@ -100,6 +100,7 @@ class BreezyLayoutsPropertyAddForm extends FormBase {
     if ($property_type) {
       $form['elements'] = [
         '#type' => 'table',
+        '#title' => $this->t('Choose element'),
         '#header' => [$this->t('Type'), $this->t('Description'), ''],
       ];
 
@@ -199,6 +200,9 @@ class BreezyLayoutsPropertyAddForm extends FormBase {
     $elements = [];
     $element_definitions = $this->elementManager->getValidDefinitions();
     foreach ($element_definitions as $id => $definition) {
+      if ($definition['hidden'] === TRUE) {
+        continue;
+      }
       $elements[$id] = $definition;
     }
     return $elements;

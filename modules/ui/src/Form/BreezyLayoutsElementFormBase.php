@@ -278,5 +278,80 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
     return FALSE;
   }
 
+  /**
+   * Remove option callback.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
+   *
+   * @return array
+   *   The options portion of the form.
+   */
+  public function removeOptionCallback(array &$form, FormStateInterface $form_state) {
+    return $form['properties']['element']['options'];
+  }
+
+  /**
+   * Remove option submit.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
+   */
+  public function removeOptionSubmit(array &$form, FormStateInterface $form_state) {
+    $trigger = $form_state->getTriggeringElement();
+    $num_lines = $form_state->get('num_lines');
+    $removed_lines = $form_state->get('removed_lines');
+    $remaining_lines = $num_lines - count($removed_lines);
+
+    if (($num_lines >= 1 && $remaining_lines > 1)
+      && str_starts_with($trigger['#name'], '_remove_')) {
+      $indexToRemove = str_replace('_remove_', '', $trigger['#name']);
+      unset($form['options']['options'][$indexToRemove]);
+      $options = $form_state->getvalue(['options', 'options']);
+      unset($options[$indexToRemove]);
+      $form_state->setValue(['options', 'options'], $options);
+      $removed_lines[] = $indexToRemove;
+      $form_state->set('removed_lines', $removed_lines);
+    }
+    $form_state->setRebuild();
+  }
+
+  /**
+   * Callback for "add_option" button.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
+   *
+   * @return array
+   *   The form component.
+   */
+  public function addOptionCallback(array &$form, FormStateInterface $form_state) {
+    $logger = \Drupal::logger('addOptionCallback');
+    $logger->alert('$num_lines: ' . $form_state->get('num_lines'));
+    return $form['properties']['element']['options'];
+  }
+
+  /**
+   * Submit handler for the "add_option" button.
+   *
+   * Increments the max counter and causes a rebuild.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   */
+  public function addOptionSubmit(array &$form, FormStateInterface $form_state) {
+    $logger = \Drupal::logger('addOptionSubmit');
+    $logger->warning('num_lines: ' . $form_state->get('num_lines'));
+    $form_state->set('num_lines', $form_state->get('num_lines') + 1);
+    $form_state->setRebuild();
+  }
 
 }

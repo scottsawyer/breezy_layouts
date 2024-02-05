@@ -34,7 +34,20 @@ interface BreezyLayoutsElementPluginManagerInterface {
   public function getElementPluginId(array $element);
 
   /**
-   * Get a webform element plugin instance for an element.
+   * The fallback plugin id.
+   *
+   * @param string $plugin_id
+   *   The plugin id.
+   * @param array $configuration
+   *   The plugin configuration.
+   *
+   * @return string
+   *   The fallback plugin id.
+   */
+  public function getFallbackPluginId($plugin_id, array $configuration = []);
+
+  /**
+   * Get a Breezy Layouts element plugin instance for an element.
    *
    * @param array $element
    *   An associative array containing an element with a #type property.

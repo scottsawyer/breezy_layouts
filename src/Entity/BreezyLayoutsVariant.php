@@ -287,6 +287,7 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
   public function deleteElement($key, array $parent_key) {
     $configuration = $this->getPluginConfiguration();
     NestedArray::unsetValue($configuration, $parent_key, $key);
+    $this->setPluginConfiguration($configuration);
   }
 
 }

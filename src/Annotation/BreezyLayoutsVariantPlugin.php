@@ -36,4 +36,18 @@ class BreezyLayoutsVariantPlugin extends Plugin {
    */
   public $layout;
 
+  /**
+   * Has a customizable "container".
+   *
+   * @var bool
+   */
+  public $container = FALSE;
+
+  /**
+   * Has a customizable "wrapper".
+   *
+   * @var bool
+   */
+  public $wrapper = FALSE;
+
 }

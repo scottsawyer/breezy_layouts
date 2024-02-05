@@ -54,10 +54,23 @@ class BreezyLayoutsElementPluginManager extends DefaultPluginManager implements 
     if (isset($element['#breezy_layouts_plugin_id']) && $this->hasDefinition($element['#breezy_layouts_plugin_id'])) {
       return $element['#breezy_layouts_plugin_id'];
     }
-    elseif (isset($element['#type'])) {
+    elseif (isset($element['#type']) && $this->hasDefinition($element['#type'])) {
       return $element['#type'];
     }
+    elseif (isset($element['element']['type']) && $this->hasDefinition($element['#type'])) {
+      return $element['element']['type'];
+    }
+
+    return $this->getFallbackPluginId(NULL);
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFallbackPluginId($plugin_id, array $configuration = []) {
+    return 'breezy_layouts_element';
+  }
+
   /**
    * {@inheritdoc}
    */

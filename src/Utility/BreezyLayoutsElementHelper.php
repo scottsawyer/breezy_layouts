@@ -3,6 +3,7 @@
 namespace Drupal\breezy_layouts\Utility;
 
 use Drupal\Core\Render\Element;
+use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
 
 /**
  * Helper class for Breezy Layouts Element.
@@ -111,6 +112,24 @@ class BreezyLayoutsElementHelper {
    */
   public static function formKeyToArray(string $form_key) {
     return preg_split('/[\[]/', str_replace(']', '', $form_key));
+  }
+
+  /**
+   * Get the element title from the element.
+   *
+   * @param \Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface $element
+   *   The element.
+   *
+   * @return string
+   *   The element title.
+   */
+  public static function getElementTitle(BreezyLayoutsElementInterface $element) {
+    $title = '';
+    $configuration = $element->getConfiguration();
+    if (isset($configuration['element']['title'])) {
+      $title = $configuration['element']['title'];
+    }
+    return $title;
   }
 
 }

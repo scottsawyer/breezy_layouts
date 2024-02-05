@@ -66,7 +66,6 @@ class BreezyLayoutsVariantAddForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
-
     $form['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Label'),

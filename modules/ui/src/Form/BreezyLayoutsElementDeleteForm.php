@@ -7,7 +7,9 @@ use Drupal\Component\Serialization\Json;
 use Drupal\breezy_layouts\Form\BreezyLayoutsDeleteFormBase;
 use Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface;
 use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
+use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a form for deleting elements.
@@ -29,11 +31,11 @@ class BreezyLayoutsElementDeleteForm extends BreezyLayoutsDeleteFormBase {
   protected $variant;
 
   /**
-   * A webform element.
+   * An element.
    *
-   * @var \Drupal\webform\Plugin\WebformElementInterface
+   * @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface
    */
-  protected $webformElement;
+  protected $breezyLayoutsElement;
 
   /**
    * The element key.
@@ -59,6 +61,15 @@ class BreezyLayoutsElementDeleteForm extends BreezyLayoutsDeleteFormBase {
   /**
    * {@inheritdoc}
    */
+  public static function create(ContainerInterface $container) {
+    $instance = parent::create($container);
+    $instance->elementManager = $container->get('plugin.manager.breezy_layouts.element');
+    return $instance;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getFormId() {
     return 'breezy_layouts_ui_element_delete_form';
   }
@@ -67,9 +78,26 @@ class BreezyLayoutsElementDeleteForm extends BreezyLayoutsDeleteFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return $this->t('Delete the element from the %variant', [
+    $element_plugin = $this->getElementPlugin();
+    return $this->t('Delete the %element element from the %variant', [
+      '%element' => $this->getElementTitle(),
       '%variant' => $this->variant->label(),
     ]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDescription() {
+
+    $element = $this->element;
+    return [
+      'title' => [
+        '#markup' => $this->t('This will delete %element.', [
+          '%element' => $element['element']['title'] ?? 'this element',
+        ]),
+      ],
+    ];
   }
 
   /**
@@ -83,7 +111,7 @@ class BreezyLayoutsElementDeleteForm extends BreezyLayoutsDeleteFormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, BreezyLayoutsVariantInterface $breezy_layouts_variant = NULL, $key = NULL, $parent_key = NULL) {
+  public function buildForm(array $form, FormStateInterface $form_state, BreezyLayoutsVariantInterface $breezy_layouts_variant = NULL, $type = NULL, $key = NULL, $parent_key = NULL) {
     $this->variant = $breezy_layouts_variant;
     if (!$parent_key) {
       $parent_key = $this->getRequest()->query->get('parent');
@@ -100,6 +128,7 @@ class BreezyLayoutsElementDeleteForm extends BreezyLayoutsDeleteFormBase {
     }
 
     $form = parent::buildForm($form, $form_state);
+    $form = $this->buildDialogConfirmForm($form, $form_state);
     return $form;
 
   }
@@ -112,8 +141,28 @@ class BreezyLayoutsElementDeleteForm extends BreezyLayoutsDeleteFormBase {
     $this->variant->save();
 
     $query = [];
-    $query = ['reload' => 'true'];
-    $form_state->setRedirectUrl($this->variant->toUrl(['edit-form', ['query' => $query]]));
+    $form_state->setRedirectUrl($this->variant->toUrl('edit-form', ['query' => $query]));
+  }
+
+  /**
+   * Return the element plugin associated with this form.
+   *
+   * @return \Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface
+   *   An element.
+   */
+  protected function getElementPlugin() {
+    return $this->elementManager->getElementInstance($this->element);
+  }
+
+  /**
+   * Get the element title from the element.
+   *
+   * @return string
+   *   The element title.
+   */
+  protected function getElementTitle() {
+    $element = $this->getElementPlugin();
+    return BreezyLayoutsElementHelper::getElementTitle($element);
   }
 
 }

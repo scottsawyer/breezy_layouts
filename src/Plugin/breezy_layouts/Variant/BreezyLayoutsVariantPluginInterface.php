@@ -43,4 +43,20 @@ interface BreezyLayoutsVariantPluginInterface extends ConfigurableInterface, Con
    */
   public function hasLayoutForm();
 
+  /**
+   * If the plugin supports a customizable "container".
+   *
+   * @return bool
+   *   True if the plugin supports customizing a container element.
+   */
+  public function hasContainer();
+
+  /**
+   * If the plugin supports a customizable "wrapper" element.
+   *
+   * @return bool
+   *   True if the plugin supports customizing a wrapper element.
+   */
+  public function hasWrapper();
+
 }

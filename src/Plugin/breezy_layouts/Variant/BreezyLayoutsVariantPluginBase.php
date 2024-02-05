@@ -5,6 +5,7 @@ namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Variant;
 use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Layout\LayoutPluginManagerInterface;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\Core\Render\Element\Form;
 use Drupal\Core\Url;
@@ -38,15 +39,21 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
   protected $parentEntity;
 
   /**
+   * The layout plugin manager.
+   *
+   * @var \Drupal\Core\Layout\LayoutPluginManagerInterface $layout_plugin_manager
+   */
+  protected $layoutPluginManager;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, LayoutPluginManagerInterface $layout_plugin_manager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
-
+    $this->layoutPluginManager = $layout_plugin_manager;
     $this->configuration += $this->defaultConfiguration();
     if (array_key_exists('_entity', $configuration)) {
       $this->parentEntity = $configuration['_entity'];
-      unset($configuration['_entity']);
     }
   }
 
@@ -54,6 +61,8 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    /** @var \Drupal\Core\Layout\LayoutPluginManagerInterface $layout_plugin_manager */
+    $layout_plugin_manager = $container->get('plugin.manager.core.layout');
     return new static(
       $configuration,
       $plugin_id,
@@ -101,6 +110,20 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    */
   public function getLayoutId() {
     return $this->pluginDefinition['layout'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function hasContainer() {
+    return $this->pluginDefinition['container'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function hasWrapper() {
+    return $this->pluginDefinition['wrapper'];
   }
 
   /**
@@ -176,9 +199,7 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    *   An array of properties for a given key.
    */
   public function getProperties(array $parent_key) {
-    //$parent_array = BreezyLayoutsElementHelper::formKeyToArray($parent_key);
     $configuration = $this->getConfiguration();
-    //$properties = NestedArray::getValue($configuration, $parent_array);
     $properties = NestedArray::getValue($configuration, $parent_key);
     if ($properties) {
       return $properties;
@@ -233,7 +254,8 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
     $row['type'] = [
         '#markup' => $type,
     ];
-
+    $weight_parents = $parent_key;
+    $weight_parents[] = $key;
     $row['weight'] = [
       '#type' => 'weight',
       '#title' => $this->t('Weight for @title', ['@title' => $title]),
@@ -244,6 +266,7 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
         'class' => ['row-weight'],
       ],
       '#delta' => $delta,
+      '#parents' => $weight_parents,
     ];
 
     $query = [
@@ -418,11 +441,16 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    */
   public function mergeFormState(array $configuration, array $form_values) {
     $breakpoints = $configuration['breakpoints'];
+    $config_values = [];
     foreach ($breakpoints as $breakpoint_name => $breakpoint_settings) {
-
+      if (!$breakpoint_settings['enabled']) {
+        continue;
+      }
+      // Get $properties (fields) from $config.
+      $config_values[$breakpoint_name] = $breakpoint_settings;
     }
 
-    return $configuration.
+    return NestedArray::mergeDeepArray($form_values['breakpoints'], $config_values);
   }
 
 }

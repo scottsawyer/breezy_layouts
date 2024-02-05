@@ -7,6 +7,7 @@ use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\breakpoint\BreakpointManagerInterface;
 use Drupal\Core\Url;
+use Drupal\Core\Layout\LayoutPluginManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -17,6 +18,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   label = @Translation("Breezy one column"),
  *   description = @Translation("Provides a variant plugin for Breezy one
  *   column layout"), layout = "breezy-one-column",
+ *   container = TRUE,
+ *   wrapper = TRUE,
  * )
  */
 class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
@@ -49,9 +52,11 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
    *   The breakpoint manager service.
    * @param \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface $tailwind_classes
    *   The tailwind classes service.
+   * @param \Drupal\Core\Layout\LayoutPluginManagerInterface $layout_plugin_manager
+   *    The layout plugin manager.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, BreakpointManagerInterface $breakpoint_manager, BreezyLayoutsTailwindClassServiceInterface $tailwind_classes) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, BreakpointManagerInterface $breakpoint_manager, BreezyLayoutsTailwindClassServiceInterface $tailwind_classes, LayoutPluginManagerInterface $layout_plugin_manager) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $layout_plugin_manager);
     $this->configuration += $this->defaultConfiguration();
     $this->breakpointManager = $breakpoint_manager;
     $this->tailwindClasses = $tailwind_classes;
@@ -65,12 +70,15 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
     $breakpoint_manager = $container->get('breakpoint.manager');
     /** @var \Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface $tailwind_classes */
     $tailwind_classes = $container->get('breezy_layouts.tailwind_classes');
+    /** @var \Drupal\Core\Layout\LayoutPluginManagerInterface $layout_plugin_manager */
+    $layout_plugin_manager = $container->get('plugin.manager.core.layout');
     return new static(
       $configuration,
       $plugin_id,
       $plugin_definition,
       $breakpoint_manager,
-      $tailwind_classes
+      $tailwind_classes,
+      $layout_plugin_manager
     );
   }
 
@@ -230,8 +238,6 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
         $form['breakpoints'][$breakpoint_name]['main']['properties'] = $this->buildPropertiesTable($parent_array, $properties);
 
         $form['breakpoints'][$breakpoint_name]['main']['add_property'] = $this->addPropertyLink($variant, $parent_array);
-
-
 
       }
     }
