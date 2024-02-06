@@ -72,17 +72,6 @@ abstract class OptionsBase extends BreezyLayoutsElementBase {
         'wrapper' => $options_wrapper_id,
       ],
     ];
-    $row['operations'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('Remove'),
-      '#name' => '_remove_' . $i,
-      '#limit_validation_errors' => [],
-      '#submit' => ['::removeOptionSubmit'],
-      '#ajax' => [
-        'callback' => '::removeOptionCallback',
-        'wrapper' => $this->getOptionsWrapperId(),
-      ],
-    ];
 
     return $form;
 
@@ -182,11 +171,17 @@ abstract class OptionsBase extends BreezyLayoutsElementBase {
     $row_class = ['draggable'];
     $row['#attributes']['class'] = $row_class;
     $row['value'] = [
+      '#type' => 'breezy_layouts_property_select',
+      '#property' => $form_state->get('property'),
+    ];
+    /*
+    $row['value'] = [
       '#type' => 'select',
       '#title' => $this->t('Option value'),
       '#required' => TRUE,
       '#options' => $this->tailwindClasses->getClassOptions($form_state->get('property')),
     ];
+    /**/
     $row['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Option label'),

@@ -6,6 +6,7 @@ use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
 use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Form\OptGroup;
 use Drupal\Core\Plugin\PluginBase;
 use Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -70,6 +71,75 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
   }
 
   /**
+   * Define an element's default properties.
+   *
+   * @return array
+   *   An associative array contain an the element's default properties.
+   */
+  protected function defineDefaultProperties() {
+    $properties = [
+      'title' => '',
+      'default_value' => '',
+      'required' => FALSE,
+      'attributes' => [],
+    ];
+    $properties += $this->defineDefaultBaseProperties();
+    return $properties;
+  }
+
+  /**
+   * Define default multiple properties used by most elements.
+   *
+   * @return array
+   *   An associative array containing default multiple properties.
+   */
+  protected function defineDefaultMultipleProperties() {
+    return [
+      'multiple' => FALSE,
+      'multiple__header_label' => '',
+      'multiple__min_items' => NULL,
+      'multiple__empty_items' => 1,
+      'multiple__add_more' => TRUE,
+      'multiple__add_more_items' => 1,
+      'multiple__add_more_button_label' => (string) $this->t('Add'),
+      'multiple__add_more_input' => TRUE,
+      'multiple__add_more_input_label' => (string) $this->t('more items'),
+      'multiple__item_label' => (string) $this->t('item'),
+      'multiple__no_items_message' => '<p>' . $this->t('No items entered. Please add items below.') . '</p>',
+      'multiple__sorting' => TRUE,
+      'multiple__operations' => TRUE,
+      'multiple__add' => TRUE,
+      'multiple__remove' => TRUE,
+    ];
+  }
+
+  /**
+   * Define default base properties used by all elements.
+   *
+   * @return array
+   *   An associative array containing base properties used by all elements.
+   */
+  protected function defineDefaultBaseProperties() {
+    return [
+
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getDefaultProperties() {
+    if (!isset($this->defaultProperties)) {
+      $properties = $this->defineDefaultProperties();
+      // Apply default format settings to element edit form properties.
+      // This approach prevents having to refactor how default formats
+      // are handled.
+      $this->defaultProperties = $properties;
+    }
+    return $this->defaultProperties;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function defaultConfiguration() {
@@ -110,37 +180,6 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
   /**
    * {@inheritdoc}
    */
-  public function getDefaultProperties() {
-    if (!isset($this->defaultProperties)) {
-      $properties = $this->defineDefaultProperties();
-      $this->defaultProperties = $properties;
-    }
-    return $this->defaultProperties;
-  }
-
-  /**
-   * Define an element's default properties.
-   *
-   * @return array
-   *   An array of default properties.
-   */
-  protected function defineDefaultProperties() {
-    $properties = [
-      'title' => '',
-      'title_display' => '',
-      'description' => '',
-      'description_display' => '',
-      'default_value' => '',
-      'required' => FALSE,
-      'attributes' => [],
-    ];
-
-    return $properties;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function getDefaultProperty($property_name) {
     $default_properties = $this->getDefaultProperties();
     return (array_key_exists($property_name, $default_properties)) ? $default_properties[$property_name] : NULL;
@@ -165,6 +204,13 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
    */
   public function getDescription() {
     return $this->pluginDefinition['description'] ?? NULL;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isHidden() {
+    return $this->pluginDefinition['hidden'];
   }
 
   /**
@@ -200,8 +246,16 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
     $custom_properties = $element_properties;
 
     // Populate the form.
-    $this->setConfigurationFormDefaultValueRecursive($form, $custom_properties);
+    $this->setConfigurationFormDefaultValueRecursive($form['element'], $custom_properties);
 
+    if (isset($custom_properties['type'])) {
+      $form['type'] = [
+        '#type' => 'value',
+        '#value' => $custom_properties['type'],
+        '#parents' => ['properties', 'type'],
+      ];
+      unset($custom_properties['type']);
+    }
     return $form;
   }
 
@@ -290,8 +344,8 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
     $logger = \Drupal::logger('setConfigurationFormDefaultValueRecursive');
     $has_input = FALSE;
 
-    foreach ($form['element'] as $property_name => &$property_element) {
-      $logger->notice('$property_name (before): ' . $property_name . '; $property_element: <pre>' . print_r($property_element, TRUE) . '</pre>');
+    foreach ($form as $property_name => &$property_element) {
+      //$logger->notice('$property_name (before): ' . $property_name . '; $property_element: <pre>' . print_r($property_element, TRUE) . '</pre>');
       if (BreezyLayoutsElementHelper::property($property_name)) {
         continue;
       }
@@ -299,10 +353,18 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
 
       $is_input = $this->elementManager->getElementInstance($property_element)->isInput($property_element);
       if ($is_input) {
-        $logger->notice('$property_name: ' . $property_name . '; $element_properties: <pre>' . print_r($element_properties, TRUE) . '</pre>');
+        $logger->notice('$is_input: TRUE - $property_name: ' . $property_name . '; $element_properties: <pre>' . print_r($element_properties, TRUE) . '</pre>');
         if (array_key_exists($property_name, $element_properties)) {
           // If this property exists, then set its default value.
           $this->setConfigurationFormDefaultValue($form, $element_properties, $property_element, $property_name);;
+          $has_input = TRUE;
+        }
+      }
+      else {
+        // Recurse down this container and see if it's children have inputs.
+        $logger->notice('!$is_input $property_name: ' . $property_name . ' - $property_element: <pre>' . print_r($property_element, TRUE) . '</pre>');
+        $container_has_input = $this->setConfigurationFormDefaultValueRecursive($property_element, $element_properties);
+        if ($container_has_input) {
           $has_input = TRUE;
         }
       }
@@ -325,13 +387,31 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
    *   THe property's name.
    */
   protected function setConfigurationFormDefaultValue(array &$form, array &$element_properties, array &$property_element, $property_name) {
+    $logger = \Drupal::logger('setConfigurationFormDefaultValue');
     $default_value = '';
     if (isset($element_properties['element'][$property_name])) {
       $default_value = $element_properties['element'][$property_name];
     }
     $type = $property_element['#type'] ?? NULL;
+    $logger->notice('$type: ' . $type . '; $default_value: <pre>' . print_r($default_value, TRUE) . '</pre>');
 
     switch ($type) {
+      case 'radios':
+      case 'select':
+        if (isset($default_value['options'])) {
+          $default_value = $default_value['options'];
+        }
+        if (!is_array($default_value) && isset($property_element['#options'])) {
+          $flattened_options = OptGroup::flattenOptions($property_element['#options']);
+          if (!isset($flattened_options[$default_value])) {
+            $default_value = NULL;
+          }
+        }
+
+        $property_element['#default_value'] = $default_value;
+
+        break;
+
       default:
         // Convert default_value array into a comma delimited list.
         // This is applicable to elements that support #multiple #options.

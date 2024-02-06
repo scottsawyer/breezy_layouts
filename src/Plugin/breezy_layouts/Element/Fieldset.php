@@ -13,6 +13,6 @@ namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
  *   multiple = FALSE,
  * )
  */
-class Fieldset extends BreezyLayoutsElementBase implements BreezyLayoutsElementInterface {
+class Fieldset extends ContainerBase {
 
 }

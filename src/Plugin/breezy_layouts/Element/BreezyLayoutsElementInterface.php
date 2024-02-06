@@ -112,4 +112,13 @@ interface BreezyLayoutsElementInterface extends ConfigurableInterface, Container
    */
   public function hasProperty($property_name);
 
+
+  /**
+   * Checks if the element is hidden.
+   *
+   * @return bool
+   *   TRUE if the element is hidden.
+   */
+  public function isHidden();
+
 }

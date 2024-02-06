@@ -2,8 +2,8 @@
 
 namespace Drupal\breezy_layouts\Element;
 
-use Drupal\Core\Render\Element\FormElement;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element\FormElement;
 
 /**
  * Provides a property select element.
@@ -62,11 +62,11 @@ class BreezyLayoutsPropertySelect extends FormElement {
         '#title' => $element['#title'],
         '#options' => $options,
         '#default_value' => (isset($element['#default_value']) && !is_string($element['#default_value'])) ? $element['#default_value'] : [],
-        '#access' => $has_options,
+        '#access' => TRUE,
       ];
     }
 
+    return $element;
   }
-
 
 }
