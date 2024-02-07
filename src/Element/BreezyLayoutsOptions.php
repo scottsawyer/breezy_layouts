@@ -62,7 +62,8 @@ class BreezyLayoutsOptions extends FormElement {
     $element['#tree'] = TRUE;
     // Add validate callback that extracts the associative array of options.
     $element += ['#element_validate' => []];
-    array_unshift($element['##element_validate'], [get_called_class(), 'validateBreezyLayoutsOptions']);
+    array_unshift($element['#element_validate'], [get_called_class(), 'validateBreezyLayoutsOptions']);
+
 
 
   }

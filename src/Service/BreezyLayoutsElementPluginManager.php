@@ -5,6 +5,7 @@ namespace Drupal\breezy_layouts\Service;
 use Drupal\breezy_layouts\Annotation\BreezyLayoutsElement;
 use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
@@ -33,6 +34,40 @@ class BreezyLayoutsElementPluginManager extends DefaultPluginManager implements 
     $this->setCacheBackend($cache_backend, 'breezy_layouts_element');
     $this->alterInfo('breezy_layouts_element');
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function initializeElement(array &$element) {
+    $element_plugin = $this->getElementInstance($element);
+    $element_plugin->initialize($element);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildElement(array &$element, array $form, FormStateInterface $form_state) {
+    // Get the form object.
+    $form_object = $form_state->getFormObject();
+
+    $element_plugin = $this->getElementInstance($element);
+    $element_plugin->prepare($element);
+    $element_plugin->finalize($element);
+    $element_plugin->setDefaultValue($element);
+
+    // Allow modules to alter the breezy_layouts element.
+    // @see \Drupal\Core\Field\WidgetBase::formSingleElement()
+    $hooks = ['breezy_layouts_element'];
+    if (!empty($element['#type'])) {
+      $hooks[] = 'breezy_layouts_element_' . $element['#type'];
+    }
+    $context = ['form' => $form];
+    $this->moduleHandler->alter($hooks, $element, $form_state, $context);
+
+    // Allow handlers to alter the breezy_layouts element.
+    // @todo Allow altering the element.
+  }
+
 
   /**
    * {@inheritdoc}

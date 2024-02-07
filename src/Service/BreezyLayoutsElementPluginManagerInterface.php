@@ -3,12 +3,36 @@
 namespace Drupal\breezy_layouts\Service;
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Provides an interface form BreezyLayoutsElementPluginManager.
  */
 interface BreezyLayoutsElementPluginManagerInterface {
 
+  /**
+   * Build a BreezyLayouts element.
+   *
+   * @param array $element
+   *   An associative array containing an element with a #type property.
+   */
+  public function initializeElement(array &$element);
+
+  /**
+   * Build a BreezyLaouts element.
+   *
+   * @param array $element
+   *   An associative array containing an element with a #type property.
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   *
+   * @see hook_webform_element_alter()
+   * @see hook_webform_element_ELEMENT_TYPE_alter()
+   * @see \Drupal\webform\WebformSubmissionForm::prepareElements
+   */
+  public function buildElement(array &$element, array $form, FormStateInterface $form_state);
 
   /**
    * Get valid definitions.

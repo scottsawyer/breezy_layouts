@@ -216,6 +216,56 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
   /**
    * {@inheritdoc}
    */
+  public function initialize(array &$element) {
+    // Set element options.
+    if (isset($element['#options'])) {
+      $element['#options'] = WebformOptions::getElementOptions($element);
+    }
+
+    // Set #admin_title to #title without any HTML markup.
+    if (!empty($element['#title']) && empty($element['#admin_title'])) {
+      $element['#admin_title'] = strip_tags($element['#title']);
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function prepare(array &$element, WebformSubmissionInterface $webform_submission = NULL) {
+    $attributes_property = ($this->hasWrapper($element)) ? '#wrapper_attributes' : '#attributes';
+
+    // Enable webform template preprocessing enhancements.
+    // @see \Drupal\webform\Utility\WebformElementHelper::isWebformElement
+    $element['#breezy_layouts_element'] = TRUE;
+
+    // Add .breezy-layouts-has-field-prefix and .breezy-layouts-has-field-suffix class.
+    if (!empty($element['#field_prefix'])) {
+      $element[$attributes_property]['class'][] = 'breezy-layouts-has-field-prefix';
+    }
+    if (!empty($element['#field_suffix'])) {
+      $element[$attributes_property]['class'][] = 'breezy-layouts-has-field-suffix';
+    }
+
+
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function finalize(array &$element) {
+    // TODO: Implement finalize() method.
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setDefaultValue($element) {
+
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $element = $form_state->get('element');
     if (is_null($element)) {

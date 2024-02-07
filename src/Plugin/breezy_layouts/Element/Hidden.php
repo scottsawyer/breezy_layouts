@@ -24,6 +24,16 @@ class Hidden extends BreezyLayoutsElementBase implements BreezyLayoutsElementInt
     $form = parent::form($form, $form_state);
 
     $form['element']['default_value'] = [
+      '#type' => 'breezy_layouts_property_select',
+      '#property' => $form_state->get('property'),
+      '#default_value' => '',
+      '#required' => TRUE,
+      '#attributes' => [
+        'class' => [''],
+      ],
+    ];
+    /*
+    $form['element']['default_value'] = [
       '#type' => 'select',
       '#title' => $this->t('Value'),
       '#default_value' => '',
@@ -33,6 +43,8 @@ class Hidden extends BreezyLayoutsElementBase implements BreezyLayoutsElementInt
       ],
       '#options' => $this->tailwindClasses->getClassOptions($form_state->get('property')),
     ];
+    /**/
+
 
     return $form;
   }

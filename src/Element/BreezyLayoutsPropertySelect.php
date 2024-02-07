@@ -61,7 +61,7 @@ class BreezyLayoutsPropertySelect extends FormElement {
         '#type' => 'select',
         '#title' => $element['#title'],
         '#options' => $options,
-        '#default_value' => (isset($element['#default_value']) && !is_string($element['#default_value'])) ? $element['#default_value'] : [],
+        '#default_value' => (isset($element['#default_value'])) ? $element['#default_value'] : '',
         '#access' => TRUE,
       ];
     }

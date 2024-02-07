@@ -121,4 +121,46 @@ interface BreezyLayoutsElementInterface extends ConfigurableInterface, Container
    */
   public function isHidden();
 
+  /**
+   * Initialize an element to be displayed, rendered, or exported.
+   *
+   * @param array $element
+   *   An element.
+   */
+  public function initialize(array &$element);
+
+  /**
+   * Prepare an element to be rendered within a BreezyLayoutsVariant form.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @see \Drupal\webform\Element\WebformCompositeBase::processWebformComposite
+   */
+  public function prepare(array &$element);
+
+  /**
+   * Finalize an element to be rendered within a BreezyLayoutsVariant form.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @see \Drupal\webform\Element\WebformCompositeBase::processWebformComposite
+   */
+  public function finalize(array &$element);
+
+  /**
+   * Set an element's default value using saved data.
+   *
+   * The method allows the Variant's 'saved' #default_value to be different
+   * from the element's #default_value.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @see \Drupal\webform\Plugin\WebformElement\DateBase::setDefaultValue
+   * @see \Drupal\webform\Plugin\WebformElement\EntityAutocomplete::setDefaultValue
+   */
+  public function setDefaultValue(array &$element);
+
 }
