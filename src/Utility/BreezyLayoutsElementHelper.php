@@ -2,6 +2,8 @@
 
 namespace Drupal\breezy_layouts\Utility;
 
+use Drupal\Component\Render\MarkupInterface;
+use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementBase;
 use Drupal\Core\Render\Element;
 use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
 
@@ -171,6 +173,34 @@ class BreezyLayoutsElementHelper {
   }
 
   /**
+   * Determine if element or sub-element has properties.
+   *
+   * @param array $element
+   *   An element.
+   * @param array $properties
+   *   Element properties.
+   *
+   * @return bool
+   *   TRUE if element or sub-element has any property.
+   */
+  public static function hasProperties(array $element, array $properties) {
+    foreach ($element as $key => $value) {
+      // Recurse through sub-elements.
+      if (static::isElement($value, $key)) {
+        if (static::hasProperties($value, $properties)) {
+          return TRUE;
+        }
+      }
+      // Return TRUE if property exists and property value is NULL or equal.
+      elseif (array_key_exists($key, $properties) && ($properties[$key] === NULL || $properties[$key] === $value)) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
+
+  /**
    * Form key to array.
    *
    * @param string $form_key
@@ -200,5 +230,128 @@ class BreezyLayoutsElementHelper {
     }
     return $title;
   }
+
+  /**
+   * Flatten a nested array of elements.
+   *
+   * @param array $elements
+   *   An array of elements.
+   *
+   * @return array
+   *   A flattened array of elements.
+   */
+  public static function getFlattened(array $elements) {
+    $flattened_elements = [];
+    foreach ($elements as $key => &$element) {
+      if (!self::isElement($element, $key)) {
+        continue;
+      }
+
+      $flattened_elements[$key] = self::getProperties($element);
+      $flattened_elements += self::getFlattened($element);
+    }
+    return $flattened_elements;
+  }
+
+  /**
+   * Set form state required error for a specified element.
+   *
+   * @param array $element
+   *   An element.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   * @param string $title
+   *   OPTIONAL. Required error title.
+   */
+  public static function setRequiredError(array $element, FormStateInterface $form_state, $title = NULL) {
+    if (isset($element['#required_error'])) {
+      $form_state->setError($element, $element['#required_error']);
+    }
+    elseif ($title) {
+      $form_state->setError($element, t('@name field is required.', ['@name' => $title]));
+    }
+    elseif (isset($element['#title'])) {
+      $form_state->setError($element, t('@name field is required.', ['@name' => $element['#title']]));
+    }
+    else {
+      $form_state->setError($element);
+    }
+  }
+
+  /**
+   * Get an element's #states.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @return array
+   *   An associative array containing an element's states.
+   */
+  public static function &getStates(array &$element) {
+    // Processed elements store the original #states in '#_breezy_layouts_states'.
+    // @see \Drupal\webform\WebformSubmissionConditionsValidator::buildForm
+    //
+    // Composite and multiple elements use a custom states wrapper
+    // which will change '#states' to '#_breezy_layouts_states'.
+    // @see \Drupal\webform\Utility\WebformElementHelper::fixStatesWrapper
+    if (!empty($element['#_breezy_layouts_states'])) {
+      return $element['#_breezy_layouts_states'];
+    }
+    elseif (!empty($element['#states'])) {
+      return $element['#states'];
+    }
+    else {
+      // Return empty states variable to prevent the below notice.
+      // 'Only variable references should be returned by reference'.
+      $empty_states = [];
+      return $empty_states;
+    }
+  }
+
+  /**
+   * Get required #states from an element's visible #states.
+   *
+   * This method allows composite and multiple to conditionally
+   * require sub-elements when they are visible.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @return array
+   *   An associative array containing 'visible' and 'invisible' selectors
+   *   and triggers.
+   */
+  public static function getRequiredFromVisibleStates(array $element) {
+    $states = BreezyLayoutsElementHelper::getStates($element);
+    $required_states = [];
+    if (!empty($states['visible'])) {
+      $required_states['required'] = $states['visible'];
+    }
+    if (!empty($states['invisible'])) {
+      $required_states['optional'] = $states['invisible'];
+    }
+    return $required_states;
+  }
+
+  /**
+   * Convert element or property to a string.
+   *
+   * This method is used to prevent 'Array to string conversion' errors.
+   *
+   * @param array|string|MarkupInterface $element
+   *   An element, render array, string, or markup.
+   *
+   * @return string
+   *   The element or property to a string.
+   */
+  public static function convertToString($element) {
+    if (is_array($element)) {
+      return (string) \Drupal::service('renderer')->renderPlain($element);
+    }
+    else {
+      return (string) $element;
+    }
+  }
+
 
 }

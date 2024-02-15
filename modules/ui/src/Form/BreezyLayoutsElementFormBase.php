@@ -104,7 +104,10 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
 
     $form['#parents'] = [];
-    $form['properties'] = ['#parents' => ['properties'], '#tree' => TRUE];
+    $form['properties'] = [
+      '#parents' => ['properties'],
+      '#tree' => TRUE,
+    ];
     $subform_state = SubformState::createForSubform($form['properties'], $form, $form_state);
     $subform_state->set('element', $this->element);
     $subform_state->set('property', $this->property);
@@ -132,6 +135,7 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
     $form['properties']['property'] = [
       '#type' => 'value',
       '#value' => $this->property,
+      //'#parents' => ['properties'],
     ];
 
     $form['properties']['element']['key'] = [

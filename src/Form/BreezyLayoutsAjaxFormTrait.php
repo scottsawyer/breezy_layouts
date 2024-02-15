@@ -199,8 +199,6 @@ trait BreezyLayoutsAjaxFormTrait {
    *   to a URL
    */
   public function submitAjaxForm(array &$form, FormStateInterface $form_state) {
-    $logger = \Drupal::logger('ajax_trait_submitAjaxForm');
-    $logger->notice('wrapper: ' . $this->getWrapperId());
 
     if ($form_state->hasAnyErrors()) {
       // Display validation errors and scroll to the top of the page.
@@ -217,7 +215,6 @@ trait BreezyLayoutsAjaxFormTrait {
       $response = $this->replaceForm($form, $form_state);
     }
     elseif ($redirect_url = $this->getFormStateRedirectUrl($form_state)) {
-      $logger->notice('$redirect_url: ' . $redirect_url);
       // Redirect to URL.
       $response = $this->createAjaxResponse($form, $form_state);
       $response->addCommand(new BreezyLayoutsCloseDialogCommand());

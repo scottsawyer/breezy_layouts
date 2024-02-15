@@ -248,11 +248,12 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
     ];
 
     $row['property'] = [
-        '#markup' => $property_name,
+      '#markup' => $property_name . '<pre>' . print_r($property, TRUE) . '</pre>',
+      '#allowed_tags' => ['pre'],
     ];
 
     $row['type'] = [
-        '#markup' => $type,
+      '#markup' => $type,
     ];
     $weight_parents = $parent_key;
     $weight_parents[] = $key;

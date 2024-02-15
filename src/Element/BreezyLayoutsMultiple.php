@@ -2,9 +2,11 @@
 
 namespace Drupal\breezy_layouts\Element;
 
+use Drupal\breezy_layouts\Utility\BreezyLayoutsAccessibilityHelper;
 use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
 use Drupal\Core\Render\Element\FormElement;
 use Drupal\Core\Template\Attribute;
 
@@ -55,7 +57,7 @@ class BreezyLayoutsMultiple extends FormElement {
       '#table_wrapper_attributes' => [],
       '#remove' => TRUE,
       '#process' => [
-        [$class, 'processWebformMultiple'],
+        [$class, 'processBreezyLayoutsMultiple'],
       ],
       '#theme_wrappers' => ['form_element'],
       // Add '#markup' property to add an 'id' attribute to the form element.
@@ -119,7 +121,7 @@ class BreezyLayoutsMultiple extends FormElement {
 
     // Add validate callback that extracts the array of items.
     $element += ['#element_validate' => []];
-    array_unshift($element['#element_validate'], [get_called_class(), 'validateWebformMultiple']);
+    array_unshift($element['#element_validate'], [get_called_class(), 'validateBreezyLayoutsMultiple']);
 
     // Get unique key used to store the current number of items.
     $number_of_items_storage_key = static::getStorageKey($element, 'number_of_items');
@@ -225,6 +227,8 @@ class BreezyLayoutsMultiple extends FormElement {
     if (count($element['#element']) > 1) {
       $table_wrapper_attributes['class'][] = 'breezy-layouts-multiple-table-responsive';
     }
+    $table_wrapper_attributes['class'][] = '$element-key-' . $element['#key'];
+    $table_wrapper_attributes['class'][] = '$element-parents-' . implode('--', $element['#parents']);
     $element['items'] = [
         '#prefix' => '<div' . new Attribute($table_wrapper_attributes) . '>',
         '#suffix' => '</div>',
@@ -276,6 +280,7 @@ class BreezyLayoutsMultiple extends FormElement {
         '#name' => $table_id . '_add',
       ];
       $max = ($element['#cardinality']) ? $element['#cardinality'] - $number_of_items : 100;
+      /*
       $element['add']['more_items'] = [
         '#type' => 'number',
         '#title' => $element['#add_more_button_label'] . ' ' . $element['#add_more_input_label'],
@@ -287,6 +292,7 @@ class BreezyLayoutsMultiple extends FormElement {
         '#error_no_message' => TRUE,
         '#access' => $element['#add_more_input'],
       ];
+      /**/
     }
 
     //$element['#attached']['library'][] = 'webform/webform.element.multiple';
@@ -312,10 +318,10 @@ class BreezyLayoutsMultiple extends FormElement {
     if (!$element['#child_keys']) {
       // Apply multiple element's required/optional #states to the
       // individual element.
-      if (isset($element['#_webform_states'])) {
+      if (isset($element['#_breezy_layouts_states'])) {
         $element['#element'] += ['#states' => []];
         $element['#element']['#states'] = array_intersect_key(
-          WebformElementHelper::getStates($element),
+          BreezyLayoutsElementHelper::getStates($element),
           ['required' => 'required', 'optional' => 'optional']
         );
       }
@@ -323,7 +329,7 @@ class BreezyLayoutsMultiple extends FormElement {
     else {
       // Initialize, prepare, and finalize composite sub-elements.
       // Get composite element required/options states from visible/hidden states.
-      $required_states = WebformElementHelper::getRequiredFromVisibleStates($element);
+      $required_states = BreezyLayoutsElementHelper::getRequiredFromVisibleStates($element);
       static::initializeElementRecursive($element, $form_state, $complete_form, $element['#element'], $required_states);
     }
   }
@@ -397,6 +403,596 @@ class BreezyLayoutsMultiple extends FormElement {
     }
   }
 
+  /**
+   * Build a single element header.
+   *
+   * @param array $element
+   *   The element.
+   *
+   * @return array
+   *   A render array containing inputs for an element's header.
+   */
+  protected static function buildElementHeader(array $element) {
+    $table_id = implode('-', $element['#parents']) . '-table';
+
+    $colspan = 0;
+    if ($element['#sorting']) {
+      $colspan += 3;
+    }
+    if ($element['#operations']) {
+      $colspan += 1;
+    }
+
+    if (empty($element['#header'])) {
+      if (!empty($element['#header_label'])) {
+        $header_label = $element['#header_label'];
+      }
+      elseif (!empty($element['#title'])) {
+        $header_label = BreezyLayoutsAccessibilityHelper::buildVisuallyHidden($element['#title']);
+      }
+      else {
+        $header_label = [];
+      }
+      return [
+        [
+          'data' => $header_label,
+          'colspan' => ($colspan + 1),
+        ],
+      ];
+    }
+    elseif (is_array($element['#header'])) {
+      $header = [];
+
+      if ($element['#sorting']) {
+        $header[] = [
+          'data' => BreezyLayoutsAccessibilityHelper::buildVisuallyHidden(t('Re-order')),
+          'class' => ["$table_id--handle", 'breezy-layouts-multiple-table--handle'],
+        ];
+      }
+
+      $header = array_merge($header, $element['#header']);
+
+      if ($element['#sorting']) {
+        $header[] = [
+          'data' => ['#markup' => t('Weight')],
+          'class' => ["$table_id--weight", 'breezy-layouts-multiple-table--weight'],
+        ];
+      }
+
+      if ($element['#operations']) {
+        $header[] = [
+          'data' => BreezyLayoutsAccessibilityHelper::buildVisuallyHidden(t('Operations')),
+          'class' => ["$table_id--handle", 'breezy-layouts-multiple-table--operations'],
+        ];
+      }
+
+      return $header;
+    }
+    elseif (is_string($element['#header'])) {
+      return [
+        ['data' => $element['#header'], 'colspan' => ($element['#child_keys']) ? count($element['#child_keys']) + $colspan : $colspan + 1],
+      ];
+    }
+    elseif (!empty($element['#header_label'])) {
+      return [
+        ['data' => $element['#header_label'], 'colspan' => ($element['#child_keys']) ? count($element['#child_keys']) + $colspan : $colspan + 1],
+      ];
+    }
+    else {
+      $header = [];
+
+      if ($element['#sorting']) {
+        $header['_handle_'] = [
+          'data' => BreezyLayoutsAccessibilityHelper::buildVisuallyHidden(t('Re-order')),
+          'class' => ["$table_id--handle", "breezy-layouts-multiple-table--handle"],
+        ];
+      }
+
+      if ($element['#child_keys']) {
+        foreach ($element['#child_keys'] as $child_key) {
+          if (static::isHidden($element['#element'][$child_key])) {
+            continue;
+          }
+
+          $child_element = $element['#element'][$child_key];
+
+          // Build element title.
+          $header[$child_key] = ['data' => static::buildElementTitle($child_element)];
+
+          // Append label attributes to header.
+          if (!empty($child_element['#label_attributes'])) {
+            $header[$child_key] += $child_element['#label_attributes'];
+          }
+          $header[$child_key]['class'][] = "$table_id--$child_key";
+          $header[$child_key]['class'][] = "breezy-layouts-multiple-table--$child_key";
+
+        }
+      }
+      else {
+        $header['item'] = [
+          'data' => $element['#element']['#title'] ?? '',
+          'class' => ["$table_id--item", "breezy-layouts-multiple-table--item"],
+        ];
+      }
+
+      if ($element['#sorting']) {
+        $header['weight'] = [
+          'data' => t('Weight'),
+          'class' => ["$table_id--weight", "breezy-layouts-multiple-table--weight"],
+        ];
+      }
+
+      if ($element['#operations']) {
+        $header['_operations_'] = [
+          'data' => BreezyLayoutsAccessibilityHelper::buildVisuallyHidden(t('Operations')),
+          'class' => ["$table_id--operations", "breezy-layouts-multiple-table--operations"],
+        ];
+      }
+
+      return $header;
+    }
+  }
+
+  /**
+   * Build an element's title with help.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @return array
+   *   A render array containing an element's title with help.
+   */
+  protected static function buildElementTitle(array $element) {
+    $title = (!empty($element['#title'])) ? $element['#title'] : '';
+
+    $build = [];
+    $build['title'] = [
+      '#markup' => $title,
+    ];
+    if (!empty($element['#required']) || !empty($element['#_required'])) {
+      $build['title'] += [
+        '#prefix' => '<span class="form-required">',
+        '#suffix' => '</span>',
+      ];
+    }
+    if (!empty($element['#help'])) {
+      // @todo Add help element.
+      /*
+      $build['help'] = [
+        '#type' => 'webform_help',
+        '#help' => $element['#help'],
+        '#help_title' => $title,
+      ];
+      /**/
+    }
+
+    return $build;
+  }
+
+  /**
+   * Build a single element row.
+   *
+   * @param string $table_id
+   *   The element's table id.
+   * @param int $row_index
+   *   The row index.
+   * @param array $element
+   *   The element.
+   * @param string $default_value
+   *   The default value.
+   * @param int $weight
+   *   The weight.
+   * @param array $ajax_settings
+   *   An array containing Ajax callback settings.
+   *
+   * @return array
+   *   A render array containing inputs for an element's value and weight.
+   */
+  protected static function buildElementRow($table_id, $row_index, array $element, $default_value, $weight, array $ajax_settings) {
+    if ($element['#child_keys']) {
+      static::setElementRowDefaultValueRecursive($element['#element'], (array) $default_value);
+    }
+    else {
+      static::setElementDefaultValue($element['#element'], $default_value);
+    }
+
+    $hidden_elements = [];
+    $row = [];
+
+    if ($element['#sorting']) {
+      $row['_handle_'] = [
+        '#wrapper_attributes' => [
+          'class' => ['breezy-layouts-multiple-table--handle'],
+        ],
+      ];
+    }
+
+    if ($element['#child_keys'] && !empty($element['#header'])) {
+      // Set #parents which is used for nested elements.
+      // @see \Drupal\webform\Element\WebformMultiple::setElementRowParentsRecursive
+      $parents = array_merge($element['#parents'], ['items', $row_index]);
+      $hidden_parents = array_merge($element['#parents'], ['items', $row_index, '_hidden_']);
+      foreach ($element['#child_keys'] as $child_key) {
+        // Store hidden element in the '_handle_' column.
+        // @see \Drupal\webform\Element\WebformMultiple::convertValuesToItems
+        if (static::isHidden($element['#element'][$child_key])) {
+          $hidden_elements[$child_key] = $element['#element'][$child_key];
+          // ISSUE:
+          // All elements in _handle_ with #access: FALSE are losing
+          // their values.
+          //
+          // Moving these #access: FALSE and value elements outside of the
+          // table does not work. What is even move baffling is manually adding
+          // a 'value' element does work.
+          //
+          // $element['hidden'][$row_index][$child_key] = $element['#element'][$child_key];
+          // $element['hidden'][1000]['test'] = ['#type' => 'value', '#value' => 'test'];
+          //
+          // WORKAROUND:
+          // Convert element to rendered hidden element.
+          if (Element::isVisibleElement($element)) {
+            $hidden_elements[$child_key]['#type'] = 'hidden';
+            // Unset #access, #element_validate, and #pre_render.
+            // @see \Drupal\webform\Plugin\WebformElementBase::prepare()
+            // Unset #options to prevent An illegal choice has been detected.
+            // @see \Drupal\Core\Form\FormValidator::performRequiredValidation
+            unset(
+              $hidden_elements[$child_key]['#access'],
+              $hidden_elements[$child_key]['#element_validate'],
+              $hidden_elements[$child_key]['#pre_render'],
+              $hidden_elements[$child_key]['#options']
+            );
+          }
+          static::setElementRowParentsRecursive($hidden_elements[$child_key], $child_key, $hidden_parents);
+        }
+        else {
+          $row[$child_key] = $element['#element'][$child_key];
+          static::setElementRowParentsRecursive($row[$child_key], $child_key, $parents);
+        }
+      }
+    }
+    else {
+      $row['_item_'] = $element['#element'];
+    }
+
+    if ($element['#sorting']) {
+      $row['weight'] = [
+        '#type' => 'weight',
+        '#delta' => 1000,
+        '#title' => t('Item weight'),
+        '#title_display' => 'invisible',
+        '#attributes' => [
+          'class' => ['breezy-layouts-multiple-sort-weight'],
+        ],
+        '#wrapper_attributes' => [
+          'class' => ['breezy-layouts-multiple-table--weight'],
+        ],
+        '#default_value' => $weight,
+      ];
+    }
+
+    // Allow users to add & remove rows if cardinality is not set.
+    if ($element['#operations']) {
+      $row['_operations_'] = [
+        '#wrapper_attributes' => [
+          'class' => ['breezy-layouts-multiple-table--operations'],
+        ],
+      ];
+      if ($element['#add'] && $element['#remove']) {
+        $row['_operations_']['#wrapper_attributes']['class'][] = 'breezy-layouts-multiple-table--operations-two';
+      }
+      if ($element['#add']) {
+        /*
+        $row['_operations_']['add'] = [
+          '#type' => 'button',
+          '#title' => t('Add new @item after @item @number', ['@number' => $row_index + 1, '@item' => $element['#item_label']]),
+          '#limit_validation_errors' => [],
+          '#submit' => [[get_called_class(), 'addItemSubmit']],
+          '#ajax' => $ajax_settings,
+          // Issue #1342066 Document that buttons with the same #value need a unique
+          // #name for the Form API to distinguish them, or change the Form API to
+          // assign unique #names automatically.
+          '#row_index' => $row_index,
+          '#name' => $table_id . '_add_' . $row_index,
+        ];
+        /**/
+        /*
+        $row['_operations_']['add'] = [
+          '#type' => 'image_button',
+          '#title' => t('Add new @item after @item @number', ['@number' => $row_index + 1, '@item' => $element['#item_label']]),
+          '#src' => \Drupal::service('extension.list.module')->getPath('webform') . '/images/icons/plus.svg',
+          '#limit_validation_errors' => [],
+          '#submit' => [[get_called_class(), 'addItemSubmit']],
+          '#ajax' => $ajax_settings,
+          // Issue #1342066 Document that buttons with the same #value need a unique
+          // #name for the Form API to distinguish them, or change the Form API to
+          // assign unique #names automatically.
+          '#row_index' => $row_index,
+          '#name' => $table_id . '_add_' . $row_index,
+        ];
+        /**/
+      }
+      if ($element['#remove']) {
+        $row['_operations_']['remove'] = [
+          '#type' => 'button',
+          '#title' => t('Remove @item @number', ['@number' => $row_index + 1, '@item' => $element['#item_label']]),
+          '#limit_validation_errors' => [],
+          '#submit' => [[get_called_class(), 'removeItemSubmit']],
+          '#ajax' => $ajax_settings,
+          // Issue #1342066 Document that buttons with the same #value need a unique
+          // #name for the Form API to distinguish them, or change the Form API to
+          // assign unique #names automatically.
+          '#row_index' => $row_index,
+          '#name' => $table_id . '_remove_' . $row_index,
+        ];
+        /*
+        $row['_operations_']['remove'] = [
+          '#type' => 'image_button',
+          '#title' => t('Remove @item @number', ['@number' => $row_index + 1, '@item' => $element['#item_label']]),
+          '#src' => \Drupal::service('extension.list.module')->getPath('webform') . '/images/icons/minus.svg',
+          '#limit_validation_errors' => [],
+          '#submit' => [[get_called_class(), 'removeItemSubmit']],
+          '#ajax' => $ajax_settings,
+          // Issue #1342066 Document that buttons with the same #value need a unique
+          // #name for the Form API to distinguish them, or change the Form API to
+          // assign unique #names automatically.
+          '#row_index' => $row_index,
+          '#name' => $table_id . '_remove_' . $row_index,
+        ];
+        /**/
+      }
+    }
+
+    // Add hidden element as a hidden row.
+    if ($hidden_elements) {
+      $row['_hidden_'] = $hidden_elements + [
+          '#wrapper_attributes' => ['style' => 'display: none'],
+        ];
+    }
+
+    if ($element['#sorting']) {
+      $row['#attributes']['class'][] = 'draggable';
+      $row['#weight'] = $weight;
+    }
+
+    return $row;
+  }
+
+  /**
+   * Set element row default value recursively.
+   *
+   * @param array $element
+   *   The element.
+   * @param array $default_value
+   *   The default values.
+   */
+  protected static function setElementRowDefaultValueRecursive(array &$element, array $default_value) {
+    $logger = \Drupal::logger('setElementRowDefaultValueRecursive');
+    foreach (Element::children($element) as $child_key) {
+
+      if (isset($default_value[$child_key])) {
+        $logger->warning('$child_key: ' . $child_key . ' <br> $default_value[$child_key] <pre>' . print_r($default_value[$child_key], TRUE) . '</pre>');
+        static::setElementDefaultValue($element[$child_key], $default_value[$child_key]);
+      }
+      static::setElementRowDefaultValueRecursive($element[$child_key], $default_value);
+    }
+  }
+
+  /**
+   * Set element row default value recursively.
+   *
+   * @param array $element
+   *   The element.
+   * @param mixed $default_value
+   *   The default value.
+   */
+  protected static function setElementDefaultValue(array &$element, $default_value) {
+    if ($element['#type'] === 'value') {
+      $element['#value'] = $default_value;
+    }
+    else {
+      $element['#default_value'] = $default_value;
+      // Set default value.
+      // @see \Drupal\webform\Plugin\WebformElementInterface::setDefaultValue
+      // @see \Drupal\webform\Plugin\WebformElement\DateBase::setDefaultValue
+      /** @var \Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface $element_manager */
+      $element_manager = \Drupal::service('plugin.manager.breezy_layouts.element');
+      $element_plugin = $element_manager->getElementInstance($element);
+      $element_plugin->setDefaultValue($element);
+    }
+  }
+
+  /**
+   * Set element row parents recursively.
+   *
+   * This allow elements/columns to contain nested sub-elements.
+   *
+   * @param array $element
+   *   The child element.
+   * @param string $element_key
+   *   The child element's key.
+   * @param array $parents
+   *   The main element's parents.
+   */
+  protected static function setElementRowParentsRecursive(array &$element, $element_key, array $parents) {
+    $element['#parents'] = array_merge($parents, [$element_key]);
+    foreach (Element::children($element) as $child_key) {
+      static::setElementRowParentsRecursive($element[$child_key], $child_key, $parents);
+    }
+  }
+
+  /* ************************************************************************ */
+  // Callbacks.
+  /* ************************************************************************ */
+
+  /**
+   * Submission handler for adding more items.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public static function addItemsSubmit(array &$form, FormStateInterface $form_state) {
+    // Get the breezy_layouts list element by going up two levels.
+    $button = $form_state->getTriggeringElement();
+    $element =& NestedArray::getValue($form, array_slice($button['#array_parents'], 0, -2));
+
+    // Add more items to the number of items.
+    $number_of_items_storage_key = static::getStorageKey($element, 'number_of_items');
+    $number_of_items = $form_state->get($number_of_items_storage_key);
+    $more_items = 1;
+    // Limit to prevent out-of-memory errors.
+    if ($more_items > 100) {
+      $more_items = 100;
+    }
+    $form_state->set($number_of_items_storage_key, $number_of_items + $more_items);
+
+    // Reset values.
+    $items = (!empty($element['items']['#value'])) ? array_values($element['items']['#value']) : [];
+    $element['items']['#value'] = $items;
+    $form_state->setValueForElement($element['items'], $items);
+    NestedArray::setValue($form_state->getUserInput(), $element['items']['#parents'], $items);
+
+    $action_key = static::getStorageKey($element, 'action');
+    $form_state->set($action_key, TRUE);
+
+    // Rebuild the form.
+    $form_state->setRebuild();
+  }
+
+  /**
+   * Submission handler for adding an item.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public static function addItemSubmit(array &$form, FormStateInterface $form_state) {
+    $button = $form_state->getTriggeringElement();
+    $element = NestedArray::getValue($form, array_slice($button['#array_parents'], 0, -4));
+
+    // Add item.
+    $values = [];
+    foreach ($element['items']['#value'] as $row_index => $value) {
+      $values[] = $value;
+      if ($row_index === $button['#row_index']) {
+        $values[] = [];
+      }
+    }
+
+    // Add one item to the 'number of items'.
+    $number_of_items_storage_key = static::getStorageKey($element, 'number_of_items');
+    $number_of_items = $form_state->get($number_of_items_storage_key);
+    $form_state->set($number_of_items_storage_key, $number_of_items + 1);
+
+    // Reset values.
+    $form_state->setValueForElement($element['items'], $values);
+    NestedArray::setValue($form_state->getUserInput(), $element['items']['#parents'], $values);
+
+    $action_key = static::getStorageKey($element, 'action');
+    $form_state->set($action_key, TRUE);
+
+    // Rebuild the form.
+    $form_state->setRebuild();
+  }
+
+  /**
+   * Submission handler for removing an item.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
+   */
+  public static function removeItemSubmit(array &$form, FormStateInterface $form_state) {
+    $button = $form_state->getTriggeringElement();
+    $element = NestedArray::getValue($form, array_slice($button['#array_parents'], 0, -4));
+    $values = $element['items']['#value'];
+
+    // Remove item.
+    unset($values[$button['#row_index']]);
+    $values = array_values($values);
+
+    // Remove one item from the 'number of items'.
+    $number_of_items_storage_key = static::getStorageKey($element, 'number_of_items');
+    $number_of_items = $form_state->get($number_of_items_storage_key);
+    // Never allow the number of items to be less than #min_items.
+    if ($number_of_items > $element['#min_items']) {
+      $form_state->set($number_of_items_storage_key, $number_of_items - 1);
+    }
+
+    // Reset values.
+    $form_state->setValueForElement($element['items'], $values);
+    NestedArray::setValue($form_state->getUserInput(), $element['items']['#parents'], $values);
+
+    $action_key = static::getStorageKey($element, 'action');
+    $form_state->set($action_key, TRUE);
+
+    // Rebuild the form.
+    $form_state->setRebuild();
+  }
+
+  /**
+   * Submission Ajax callback the returns the list table.
+   */
+  public static function ajaxCallback(array &$form, FormStateInterface $form_state) {
+    $button = $form_state->getTriggeringElement();
+    $parent_length = (isset($button['#row_index'])) ? -4 : -2;
+    $element = NestedArray::getValue($form, array_slice($button['#array_parents'], 0, $parent_length));
+
+    // Make sure only the ajax prefix and suffix is used.
+    $element['#prefix'] = $element['#ajax_prefix'];
+    $element['#suffix'] = $element['#ajax_suffix'];
+
+    // Disable states and flexbox wrapper.
+    // @see \Drupal\webform\Plugin\WebformElementBase::preRenderFixFlexboxWrapper
+    $element['#breezy_element_wrapper'] = FALSE;
+
+    return $element;
+  }
+
+  /**
+   * Validates breezy_layouts multiple element.
+   */
+  public static function validateBreezyLayoutsMultiple(&$element, FormStateInterface $form_state, &$complete_form) {
+    // IMPORTANT: Must get values from the $form_states since sub-elements
+    // may call $form_state->setValueForElement() via their validation hook.
+    // @see \Drupal\webform\Element\WebformEmailConfirm::validateWebformEmailConfirm
+    // @see \Drupal\webform\Element\WebformOtherBase::validateWebformOther
+    $values = NestedArray::getValue($form_state->getValues(), $element['#parents']);
+
+    $number_of_items_storage_key = static::getStorageKey($element, 'number_of_items');
+    $number_of_items = $form_state->get($number_of_items_storage_key);
+    if (!empty($values['items']) && ($number_of_items || $element['#cardinality'])) {
+      $items = $values['items'];
+
+      // Validate unique keys.
+      if ($error_message = static::validateUniqueKeys($element, $items)) {
+        $form_state->setError($element, $error_message);
+        return;
+      }
+
+      // Convert values to items and validate duplicate keys.
+      $items = static::convertValuesToItems($element, $items);
+
+      // Validate required items.
+      if (!empty($element['#required']) && empty($items)) {
+        BreezyLayoutsElementHelper::setRequiredError($element, $form_state);
+      }
+    }
+    else {
+      $items = [];
+    }
+
+    $element['#value'] = $items;
+    $form_state->setValueForElement($element, $items);
+  }
+
+  /* ************************************************************************ */
+  // Helper functions.
+  /* ************************************************************************ */
 
   /**
    * Get unique key used to store the number of items for an element.
@@ -428,6 +1024,7 @@ class BreezyLayoutsMultiple extends FormElement {
    *   Throws unique key required validation error message as an exception.
    */
   public static function convertValuesToItems(array $element, array $values = []) {
+    $logger = \Drupal::logger('convertValuesToItems');
     // Sort the item values.
     if ($element['#sorting']) {
       // @todo Add sorting.
@@ -436,6 +1033,7 @@ class BreezyLayoutsMultiple extends FormElement {
 
     // Now build the associative array of items.
     $items = [];
+    $logger->warning('$values: <pre>' . print_r($values, TRUE) . '</pre>');
     foreach ($values as $value) {
       $item = static::convertValueToItem($value);
 
@@ -449,7 +1047,8 @@ class BreezyLayoutsMultiple extends FormElement {
         $key_name = $element['#key'];
         $key_value = $item[$key_name];
         unset($item[$key_name]);
-        $items[$key_value] = $item;
+        $logger->warning('$key_name: ' . $key_name . '; $key_value: <pre>' . print_r($key_value, TRUE) . '</pre> $item: <pre>' . print_r($item, TRUE) . '</pre>');
+        $items[$key_value[$key_name]] = $item;
       }
       else {
         $items[] = $item;
@@ -485,6 +1084,49 @@ class BreezyLayoutsMultiple extends FormElement {
   }
 
   /**
+   * Validate composite element has unique keys.
+   *
+   * @param array $element
+   *   The multiple element.
+   * @param array $values
+   *   An array containing of item and weight.
+   *
+   * @return null|string
+   *   NULL if element has unique keys, else an error message with
+   *   the duplicate key.
+   */
+  protected static function validateUniqueKeys(array $element, array $values) {
+    // Only validate if the element's #key is defined.
+    if (!isset($element['#key'])) {
+      return NULL;
+    }
+
+    $unique_keys = [];
+    foreach ($values as $value) {
+      $item = static::convertValueToItem($value);
+
+      $key_name = $element['#key'];
+      $key_value = $item[$key_name];
+
+      // Skip empty key and item.
+      unset($item[$key_name]);
+      if (empty($key_value) && static::isEmpty($item)) {
+        continue;
+      }
+
+      if (isset($unique_keys[$key_value])) {
+        $elements = BreezyLayoutsElementHelper::getFlattened($element['#element']);
+        $key_title = $elements[$key_name]['#title'] ?? $key_name;
+        $t_args = ['@key' => $key_value, '%title' => $key_title];
+        return t("The %title '@key' is already in use. It must be unique.", $t_args);
+      }
+
+      $unique_keys[$key_value] = $key_value;
+    }
+    return NULL;
+  }
+
+  /**
    * Check if array is empty.
    *
    * @param string|array $value
@@ -508,6 +1150,19 @@ class BreezyLayoutsMultiple extends FormElement {
     else {
       return FALSE;
     }
+  }
+
+  /**
+   * Determine if an element is hidden.
+   *
+   * @param array $element
+   *   The element.
+   *
+   * @return bool
+   *   TRUE if the element is hidden.
+   */
+  protected static function isHidden(array $element) {
+    return !Element::isVisibleElement($element);
   }
 
   /**

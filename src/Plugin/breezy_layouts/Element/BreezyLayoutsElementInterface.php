@@ -163,4 +163,15 @@ interface BreezyLayoutsElementInterface extends ConfigurableInterface, Container
    */
   public function setDefaultValue(array &$element);
 
+  /**
+   * Checks if the element value has multiple values.
+   *
+   * @param array $element
+   *   An element.
+   *
+   * @return bool
+   *   TRUE if the element value has multiple values.
+   */
+  public function hasMultipleValues(array $element);
+
 }

@@ -4,6 +4,7 @@ namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
 
 use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
 use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
+use Drupal\breezy_layouts\Element\BreezyLayoutsOptions;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\OptGroup;
@@ -82,6 +83,7 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
       'default_value' => '',
       'required' => FALSE,
       'attributes' => [],
+      'property' => '',
     ];
     $properties += $this->defineDefaultBaseProperties();
     return $properties;
@@ -218,9 +220,12 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
    */
   public function initialize(array &$element) {
     // Set element options.
+    // @todo Allow for creating options.
+    /*
     if (isset($element['#options'])) {
-      $element['#options'] = WebformOptions::getElementOptions($element);
+      $element['#options'] = BreezyLayoutsOptions::getElementOptions($element);
     }
+    /**/
 
     // Set #admin_title to #title without any HTML markup.
     if (!empty($element['#title']) && empty($element['#admin_title'])) {
@@ -231,10 +236,10 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
   /**
    * {@inheritdoc}
    */
-  public function prepare(array &$element, WebformSubmissionInterface $webform_submission = NULL) {
+  public function prepare(array &$element) {
     $attributes_property = ($this->hasWrapper($element)) ? '#wrapper_attributes' : '#attributes';
 
-    // Enable webform template preprocessing enhancements.
+    // Enable template preprocessing enhancements.
     // @see \Drupal\webform\Utility\WebformElementHelper::isWebformElement
     $element['#breezy_layouts_element'] = TRUE;
 
@@ -259,14 +264,45 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
   /**
    * {@inheritdoc}
    */
-  public function setDefaultValue($element) {
+  public function setDefaultValue(array &$element) {
 
   }
 
   /**
    * {@inheritdoc}
    */
+  public function getLabel(array $element) {
+    return (!empty($element['#title'])) ? $element['#title'] : $element['#breezy_layouts_key'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getAdminLabel(array $element) {
+    $element += ['#admin_title' => '', '#title' => '', '#breezy_layouts_key' => ''];
+    return $element['#admin_title'] ?: $element['#title'] ?: $element['#breezy_layouts_key'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getKey(array $element) {
+    return $element['#breezy_layouts_key'];
+  }
+
+
+  /**
+   * {@inheritdoc}
+   */
+  public function hasWrapper(array $element) {
+    return $this->hasProperty('wrapper_attributes');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $logger = \Drupal::logger('buildConfigurationForm');
     $element = $form_state->get('element');
     if (is_null($element)) {
       throw new \Exception('Element must be defined in the $form_state.');
@@ -296,8 +332,9 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
     $custom_properties = $element_properties;
 
     // Populate the form.
-    $this->setConfigurationFormDefaultValueRecursive($form['element'], $custom_properties);
+    $this->setConfigurationFormDefaultValueRecursive($form, $custom_properties);
 
+    /*
     if (isset($custom_properties['type'])) {
       $form['type'] = [
         '#type' => 'value',
@@ -306,6 +343,8 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
       ];
       unset($custom_properties['type']);
     }
+    /**/
+
     return $form;
   }
 
@@ -345,6 +384,11 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
       '#default_value' => $form_state->getValue('title') ?? '',
     ];
 
+    // Placeholder elements with #options.
+    // @see \Drupal\webform\Plugin\WebformElement\OptionsBase::form
+    $form['options'] = [];
+
+
     return $form;
   }
 
@@ -378,10 +422,10 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
   }
 
   /**
-   * Set configuration webform default values recursively.
+   * Set configuration default values recursively.
    *
    * @param array $form
-   *   A varient render array.
+   *   A variant render array.
    * @param array $element_properties
    *   The element's properties without hash prefix. Any property that is found
    *   in the variant will be populated and unset from
@@ -395,11 +439,15 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
     $has_input = FALSE;
 
     foreach ($form as $property_name => &$property_element) {
-      //$logger->notice('$property_name (before): ' . $property_name . '; $property_element: <pre>' . print_r($property_element, TRUE) . '</pre>');
+      $logger->notice('$property_name (before): ' . $property_name . '; $property_element: <pre>' . print_r($property_element, TRUE) . '</pre>$element_properties: <pre>' . print_r($element_properties, TRUE) . '</pre>$form: <pre>' . print_r($form, TRUE) . '</pre>');
       if (BreezyLayoutsElementHelper::property($property_name)) {
         continue;
       }
-      $logger->alert('$property_name (after): ' . $property_name . '; $property_element: <pre>' . print_r($property_element, TRUE) . '</pre>');
+
+      if ($property_name == 'property') {
+        continue;
+      }
+      $logger->notice('$property_name (after): ' . $property_name . '; $property_element: <pre>' . print_r($property_element, TRUE) . '</pre>$element_properties: <pre>' . print_r($element_properties, TRUE) . '</pre>');
 
       $is_input = $this->elementManager->getElementInstance($property_element)->isInput($property_element);
       if ($is_input) {
@@ -481,7 +529,44 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
         break;
     }
     $property_element['#parents'] = ['properties', 'element', $property_name];
+
     unset($element_properties[$property_name]);
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getTableColumn(array $element) {
+    $key = $element['#breezy_layouts_key'];
+    return [
+      'element__' . $key => [
+        'title' => $this->getAdminLabel($element),
+        'sort' => TRUE,
+        'key' => $key,
+        'property_name' => NULL,
+        'element' => $element,
+        'plugin' => $this,
+      ],
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function hasMultipleValues(array $element) {
+    if ($this->hasProperty('multiple')) {
+      if (isset($element['#multiple'])) {
+        return $element['#multiple'];
+      }
+      else {
+        $default_property = $this->getDefaultProperties();
+        return $default_property['multiple'];
+      }
+    }
+    else {
+      return FALSE;
+    }
+  }
+
 
 }
