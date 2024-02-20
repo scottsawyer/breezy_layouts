@@ -6,6 +6,7 @@ use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\breezy_layouts\Service\BreezyLayoutsVariantPluginManagerInterface;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Defines the BreezyLayoutsVariant config entity.
@@ -288,6 +289,49 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
     $configuration = $this->getPluginConfiguration();
     NestedArray::unsetValue($configuration, $parent_key, $key);
     $this->setPluginConfiguration($configuration);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildLayoutForm($form, FormStateInterface $form_state) {
+    $form['#tree'] = TRUE;
+    $variant_configuration = $this->getPluginConfiguration();
+    if (empty($variant_configuration)) {
+      return $form;
+    }
+
+    /** @var \Drupal\breezy_layouts\Service\BreezyLayoutsVariantPluginManagerInterface $variant_manager */
+    $variant_manager = \Drupal::service('plugin.manager.breezy_layouts.variant');
+
+    $variant_plugin = $variant_manager->createInstance($this->getPluginId(), $variant_configuration);
+
+    $form_state->set('breakpoint_group', $this->getBreakpointGroup());
+    $form = $variant_plugin->layoutForm($form, $form_state);
+    return $form;
+  }
+
+  /**
+   * Build layout classes.
+   *
+   * @param array $layout_form_settings
+   *   The settings submitted from the layout form.
+   *
+   * @return array
+   *   An array of classes keyed by the element.
+   */
+  public function buildLayoutClasses(array $layout_form_settings) {
+    $variant_configuration = $this->getPluginConfiguration();
+    if (empty($variant_configuration)) {
+      return [];
+    }
+    /** @var \Drupal\breezy_layouts\Service\BreezyLayoutsVariantPluginManagerInterface $variant_manager */
+    $variant_manager = \Drupal::service('plugin.manager.breezy_layouts.variant');
+    $variant_plugin = $variant_manager->createInstance($this->getPluginId(), $variant_configuration);
+    if (!$variant_plugin) {
+      return [];
+    }
+    return $variant_plugin->buildLayoutClasses($layout_form_settings);
   }
 
 }

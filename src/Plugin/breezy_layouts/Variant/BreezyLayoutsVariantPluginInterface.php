@@ -3,6 +3,7 @@
 namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Variant;
 
 use Drupal\Component\Plugin\ConfigurableInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 
@@ -58,5 +59,29 @@ interface BreezyLayoutsVariantPluginInterface extends ConfigurableInterface, Con
    *   True if the plugin supports customizing a wrapper element.
    */
   public function hasWrapper();
+
+  /**
+   * Layout form.
+   *
+   * @param array $form
+   *   The layout form.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
+   *
+   * @return array
+   *   The layout form.
+   */
+  public function layoutForm(array $form, FormStateInterface $form_state);
+
+  /**
+   * Build layout classes
+   *
+   * @param array $layout_settings
+   *   The settings submitted from the layout configuration form.
+   *
+   * @return array
+   *   An array of classes keyed by the element.
+   */
+  public function buildLayoutClasses(array $layout_settings);
 
 }

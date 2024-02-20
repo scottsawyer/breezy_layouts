@@ -3,27 +3,27 @@ breezy_layouts.settings:
   label: 'Breezy Layouts settings'
 
 breezy_layouts.breezy_layouts_variant.*:
-type: config_entity
-label: 'Breezy Layouts Variant'
-mapping:
-  id:
-    type: string
-    label: 'ID'
-  label:
-    type: string
-    label: 'Label'
-  status:
-    type: boolean
-    label: 'Status'
-  layout:
-    type: string
-    label: 'Layout'
-  plugin_id:
-    type: string
-    label: 'Plugin id'
-  plugin_configuration:
-    type: breezy_layouts.breezy_layouts_variant.plugin.[%parent.plugin]
-    label: 'Plugin configuration'
+  type: config_entity
+  label: 'Breezy Layouts Variant'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: string
+      label: 'Label'
+    status:
+      type: boolean
+      label: 'Status'
+    layout:
+      type: string
+      label: 'Layout'
+    plugin_id:
+      type: string
+      label: 'Plugin id'
+    plugin_configuration:
+      type: breezy_layouts.breezy_layouts_variant.plugin.[%parent.plugin]
+      label: 'Plugin configuration'
 
 breezy_layouts.breezy_layouts_variant.plugin.*:
   type: breezy_layouts.variant_plugin_configuration

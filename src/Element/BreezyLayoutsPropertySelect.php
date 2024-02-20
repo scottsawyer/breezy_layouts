@@ -23,6 +23,7 @@ class BreezyLayoutsPropertySelect extends FormElement {
       '#input' => TRUE,
       '#property' => NULL,
       '#title_display' => 'before',
+      '#multiple' => FALSE,
       '#process' => [
         [$class, 'processBreezyLayoutsPropertySelect'],
         [$class, 'processAjaxForm'],
@@ -30,7 +31,6 @@ class BreezyLayoutsPropertySelect extends FormElement {
       '#pre_render' => [
         [$class, 'preRenderBreezyLayoutsPropertySelect'],
       ],
-      '#theme' => 'select',
       '#theme_wrappers' => ['form_element'],
     ];
 
@@ -40,7 +40,6 @@ class BreezyLayoutsPropertySelect extends FormElement {
    * {@inheritdoc}
    */
   public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
-
     if ($input === FALSE) {
       if (isset($element['#default_value'])) {
         $default_value = $element['#default_value'];
@@ -50,7 +49,7 @@ class BreezyLayoutsPropertySelect extends FormElement {
         return '';
       }
     }
-    elseif (isset($input['value'])) {
+    elseif (!empty($input['value'])) {
       return $input['value'];
     }
     else {
@@ -63,9 +62,7 @@ class BreezyLayoutsPropertySelect extends FormElement {
    * Process a breezy_layouts_property_select element.
    */
   public static function processBreezyLayoutsPropertySelect(&$element, FormStateInterface $form_state, &$complete_form) {
-    //$logger = \Drupal::logger('processBreezyLayoutsPropertySelect');
     if (isset($element['#property'])) {
-      //$logger->warning('$element: <pre>' . print_r($element, TRUE) . '</pre>');
       $property = $element['#property'];
       $tailwind_class_service = \Drupal::service('breezy_layouts.tailwind_classes');
       $options = $tailwind_class_service->getClassOptions($property);
@@ -73,9 +70,10 @@ class BreezyLayoutsPropertySelect extends FormElement {
       $has_options = (count($options)) ? TRUE : FALSE;
 
       $default_value = $element['#default_value'] ?? '';
-      /**/
+
       $element['value'] = [
         '#type' => 'select',
+        '#multiple' => FALSE,
         //'#title' => $element['#title'],
         //'#title_display' => $element['#title_display'],
         '#empty_option' => t('-- Select --'),
@@ -85,9 +83,6 @@ class BreezyLayoutsPropertySelect extends FormElement {
         //'#access' => TRUE,
         //'#value' => $default_value,
       ];
-      /**/
-      //$element['#options'] = $options;
-      //$element['#default_value'] = $default_value;
     }
 
     // Add validate callback.
@@ -100,7 +95,7 @@ class BreezyLayoutsPropertySelect extends FormElement {
   /**
    * Prepares a BreezyLayoutsPropertySelect element.
    */
-  public function preRenderBreezyLayoutsPropertySelect($element) {
+  public static function preRenderBreezyLayoutsPropertySelect($element) {
     Element::setAttributes($element, [
       'id',
       'name' => 'breezy',

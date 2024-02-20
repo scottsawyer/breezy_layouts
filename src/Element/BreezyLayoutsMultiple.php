@@ -678,43 +678,11 @@ class BreezyLayoutsMultiple extends FormElement {
           'class' => ['breezy-layouts-multiple-table--operations'],
         ],
       ];
-      if ($element['#add'] && $element['#remove']) {
-        $row['_operations_']['#wrapper_attributes']['class'][] = 'breezy-layouts-multiple-table--operations-two';
-      }
-      if ($element['#add']) {
-        /*
-        $row['_operations_']['add'] = [
-          '#type' => 'button',
-          '#title' => t('Add new @item after @item @number', ['@number' => $row_index + 1, '@item' => $element['#item_label']]),
-          '#limit_validation_errors' => [],
-          '#submit' => [[get_called_class(), 'addItemSubmit']],
-          '#ajax' => $ajax_settings,
-          // Issue #1342066 Document that buttons with the same #value need a unique
-          // #name for the Form API to distinguish them, or change the Form API to
-          // assign unique #names automatically.
-          '#row_index' => $row_index,
-          '#name' => $table_id . '_add_' . $row_index,
-        ];
-        /**/
-        /*
-        $row['_operations_']['add'] = [
-          '#type' => 'image_button',
-          '#title' => t('Add new @item after @item @number', ['@number' => $row_index + 1, '@item' => $element['#item_label']]),
-          '#src' => \Drupal::service('extension.list.module')->getPath('webform') . '/images/icons/plus.svg',
-          '#limit_validation_errors' => [],
-          '#submit' => [[get_called_class(), 'addItemSubmit']],
-          '#ajax' => $ajax_settings,
-          // Issue #1342066 Document that buttons with the same #value need a unique
-          // #name for the Form API to distinguish them, or change the Form API to
-          // assign unique #names automatically.
-          '#row_index' => $row_index,
-          '#name' => $table_id . '_add_' . $row_index,
-        ];
-        /**/
-      }
       if ($element['#remove']) {
+        $row['_operations_']['#wrapper_attributes']['class'][] = 'breezy-layouts-multiple-table--operations';
         $row['_operations_']['remove'] = [
-          '#type' => 'button',
+          '#type' => 'submit',
+          '#value' => t('Remove'),
           '#title' => t('Remove @item @number', ['@number' => $row_index + 1, '@item' => $element['#item_label']]),
           '#limit_validation_errors' => [],
           '#submit' => [[get_called_class(), 'removeItemSubmit']],
@@ -725,21 +693,6 @@ class BreezyLayoutsMultiple extends FormElement {
           '#row_index' => $row_index,
           '#name' => $table_id . '_remove_' . $row_index,
         ];
-        /*
-        $row['_operations_']['remove'] = [
-          '#type' => 'image_button',
-          '#title' => t('Remove @item @number', ['@number' => $row_index + 1, '@item' => $element['#item_label']]),
-          '#src' => \Drupal::service('extension.list.module')->getPath('webform') . '/images/icons/minus.svg',
-          '#limit_validation_errors' => [],
-          '#submit' => [[get_called_class(), 'removeItemSubmit']],
-          '#ajax' => $ajax_settings,
-          // Issue #1342066 Document that buttons with the same #value need a unique
-          // #name for the Form API to distinguish them, or change the Form API to
-          // assign unique #names automatically.
-          '#row_index' => $row_index,
-          '#name' => $table_id . '_remove_' . $row_index,
-        ];
-        /**/
       }
     }
 
@@ -767,11 +720,9 @@ class BreezyLayoutsMultiple extends FormElement {
    *   The default values.
    */
   protected static function setElementRowDefaultValueRecursive(array &$element, array $default_value) {
-    $logger = \Drupal::logger('setElementRowDefaultValueRecursive');
     foreach (Element::children($element) as $child_key) {
 
       if (isset($default_value[$child_key])) {
-        $logger->warning('$child_key: ' . $child_key . ' <br> $default_value[$child_key] <pre>' . print_r($default_value[$child_key], TRUE) . '</pre>');
         static::setElementDefaultValue($element[$child_key], $default_value[$child_key]);
       }
       static::setElementRowDefaultValueRecursive($element[$child_key], $default_value);
@@ -907,6 +858,7 @@ class BreezyLayoutsMultiple extends FormElement {
    *   The current state of the form.
    */
   public static function removeItemSubmit(array &$form, FormStateInterface $form_state) {
+    $logger = \Drupal::logger('removeItemSubmit');
     $button = $form_state->getTriggeringElement();
     $element = NestedArray::getValue($form, array_slice($button['#array_parents'], 0, -4));
     $values = $element['items']['#value'];
@@ -917,7 +869,10 @@ class BreezyLayoutsMultiple extends FormElement {
 
     // Remove one item from the 'number of items'.
     $number_of_items_storage_key = static::getStorageKey($element, 'number_of_items');
+    $logger->notice('$number_of_items_storage_key: ' . $number_of_items_storage_key);
     $number_of_items = $form_state->get($number_of_items_storage_key);
+    $logger->notice('$number_of_items: ' . $number_of_items);
+    $logger->notice('$element[#min_items]: ' . $element['#min_items']);
     // Never allow the number of items to be less than #min_items.
     if ($number_of_items > $element['#min_items']) {
       $form_state->set($number_of_items_storage_key, $number_of_items - 1);

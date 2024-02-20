@@ -38,7 +38,7 @@ class BreezyLayoutsVariantPluginManager extends DefaultPluginManager implements 
    *   The layout plugin manager.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, LayoutPluginManagerInterface $layout_plugin_manager) {
-    parent::__construct('Plugin/breezy_layouts/Variant', $namespaces, $module_handler, BreezyLayoutsVariantPluginInterface::class, BreezyLayoutsVariantPlugin::class);
+    parent::__construct('Plugin/breezy_layouts/Variant', $namespaces, $module_handler, 'Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface', 'Drupal\breezy_layouts\Annotation\BreezyLayoutsVariantPlugin');
     $this->setCacheBackend($cache_backend, 'breezy_layouts_variant_plugin');
     $this->alterInfo('breezy_layouts_variant_plugin');
     $this->layoutPluginManager = $layout_plugin_manager;

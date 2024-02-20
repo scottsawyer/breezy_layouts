@@ -43,8 +43,6 @@ class BreezyLayoutsOptions extends FormElement {
    * {@inheritdoc}
    */
   public static function valueCallback(&$element, $input, FormStateInterface $form_state) {
-    $logger = \Drupal::logger('valueCallback');
-    $logger->warning('$element <pre>' . print_r($element, TRUE) . '</pre>');
     if ($input === FALSE) {
       if (!isset($element['#default_value']) || $element['#default_value'] == '') {
         return [];
@@ -55,7 +53,6 @@ class BreezyLayoutsOptions extends FormElement {
       if (!is_array($options)) {
         return [$options];
       }
-      $logger->warning('$options <pre>' . print_r($options, TRUE) . '</pre>');
       return static::convertOptionsToValues($options);
     }
     elseif (is_array($input) && isset($input['options'])) {
@@ -71,7 +68,6 @@ class BreezyLayoutsOptions extends FormElement {
    * Process options and build options widget.
    */
   public static function processBreezyLayoutsOptions(&$element, FormStateInterface $form_state, &$complete_form) {
-    $logger = \Drupal::logger('processBreezyLayoutsOptions');
     $element['#tree'] = TRUE;
     // Add validate callback that extracts the associative array of options.
     $element += ['#element_validate' => []];
@@ -140,7 +136,12 @@ class BreezyLayoutsOptions extends FormElement {
   public static function convertOptionsToValues(array $options = [], $options_description = FALSE) {
     $values = [];
     foreach ($options as $key => $vals) {
-      $values[] = ['value' => $vals['value'], 'text' => $vals['text']];
+      if (isset($vals['value'])) {
+        $values[] = [
+          'value' => $vals['value'],
+          'text' => $vals['text'] ?? $vals['value'],
+        ];
+      }
     }
     return $values;
   }

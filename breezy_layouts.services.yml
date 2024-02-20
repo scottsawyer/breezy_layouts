@@ -12,3 +12,8 @@ services:
   plugin.manager.breezy_layouts.element:
     class: Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManager
     parent: default_plugin_manager
+
+  # Variant manager.
+  breezy_layouts.variant.manager:
+    class: Drupal\breezy_layouts\Service\VariantManager
+    arguments: ['@entity_type.manager']

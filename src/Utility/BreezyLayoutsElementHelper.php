@@ -353,5 +353,40 @@ class BreezyLayoutsElementHelper {
     }
   }
 
+  /**
+   * Build form element.
+   *
+   * @param array $element_definition
+   *   The element definition array.
+   * @param string $prefix
+   *   The element value "prefix" (for the breakpoint).
+   * @param string $default_value
+   *   The default value for the field.
+   *
+   * @return array
+   *   A renderable array of the element.
+   */
+  public static function buildFormElement(array $element_definition, string $prefix = '', string $default_value = '') {
+    $form_element = [];
+    foreach ($element_definition as $key => $value) {
+      // Handle options.
+      if ($key == 'options') {
+        $options = [];
+        foreach ($value as $option_value) {
+          $options[$option_value['value']] = $option_value['text'];
+        }
+        $form_element['#' . $key] = $options;
+      }
+      else {
+        $form_element['#' . $key] = $value;
+      }
+
+      if (!empty($default_value)) {
+        $form_element['#default_value'] = $default_value;
+      }
+    }
+    return $form_element;
+  }
+
 
 }

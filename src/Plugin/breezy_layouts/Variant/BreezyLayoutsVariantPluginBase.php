@@ -7,13 +7,14 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Layout\LayoutPluginManagerInterface;
 use Drupal\Core\Plugin\PluginBase;
-use Drupal\Core\Render\Element\Form;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Component\Serialization\Json;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
+use Drupal\breakpoint\BreakpointManagerInterface;
 
 /**
  * Provides a base variant plugin class.
@@ -46,11 +47,35 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
   protected $layoutPluginManager;
 
   /**
+   * The breakpoint manager.
+   *
+   * @var \Drupal\breakpoint\BreakpointManagerInterface;
+   */
+  protected $breakpointManager;
+
+  /**
+   * The config factory.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
+   * BreezyLayouts settings.
+   *
+   * @var array
+   */
+  protected $breezyLayoutsSettings;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, LayoutPluginManagerInterface $layout_plugin_manager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, LayoutPluginManagerInterface $layout_plugin_manager, BreakpointManagerInterface $breakpoint_manager, ConfigFactoryInterface $config_factory) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->layoutPluginManager = $layout_plugin_manager;
+    $this->breakpointManager = $breakpoint_manager;
+    $this->configFactory = $config_factory;
+    $this->breezyLayoutsSettings = $config_factory->get('breezy_layouts.settings');
     $this->configuration += $this->defaultConfiguration();
     if (array_key_exists('_entity', $configuration)) {
       $this->parentEntity = $configuration['_entity'];
@@ -63,6 +88,10 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     /** @var \Drupal\Core\Layout\LayoutPluginManagerInterface $layout_plugin_manager */
     $layout_plugin_manager = $container->get('plugin.manager.core.layout');
+    /** @var \Drupal\breakpoint\BreakpointManagerInterface $breakpoint_manager */
+    $breakpoint_manager = $container->get('breakpoint.manager');
+    /** @var \Drupal\Core\Config\ConfigFactoryInterface $config_factory */
+    $config_factory = $container->get('config.factory');
     return new static(
       $configuration,
       $plugin_id,
@@ -160,18 +189,29 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
   }
 
   /**
-   * Layout form.
-   *
-   * @param array $form
-   *   The layout form.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state object.
-   *
-   * @return array
-   *   The layout form.
+   * {@inheritdoc}
    */
   public function layoutForm(array $form, FormStateInterface $form_state) {
     return $form;
+  }
+
+  /**
+   * Builds a form element.
+   *
+   * @param array $element_definition
+   *   The element definition array.
+   * @param string $prefix
+   *   A prefix (for the breakpoint).
+   * @param string $default_value
+   *   The default value for the field.
+   *
+   * @return array
+   *   A renderable element.
+   *
+   * @see \Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper
+   */
+  protected function buildFormElement(array $element_definition, string $prefix = '', string $default_value = '') {
+    return BreezyLayoutsElementHelper::buildFormElement($element_definition, $prefix, $default_value);
   }
 
   /**
@@ -248,7 +288,7 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
     ];
 
     $row['property'] = [
-      '#markup' => $property_name . '<pre>' . print_r($property, TRUE) . '</pre>',
+      '#markup' => $property_name,
       '#allowed_tags' => ['pre'],
     ];
 
@@ -452,6 +492,31 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
     }
 
     return NestedArray::mergeDeepArray($form_values['breakpoints'], $config_values);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildLayoutClasses(array $layout_settings) {
+    $classes = [];
+    if (empty($layout_settings) || !isset($layout_settings['breakpoints'])) {
+      return $classes;
+    }
+    foreach ($layout_settings['breakpoints'] as $breakpoint_name => $breakpoint_settings) {
+      $prefix = '';
+      if (isset($breakpoint_settings['prefix'])) {
+        if (!empty($breakpoint_settings['prefix'])) {
+          $prefix = $breakpoint_settings['prefix'];
+        }
+        unset($breakpoint_settings['prefix']);
+      }
+      foreach ($breakpoint_settings as $element_name => $element_settings) {
+        foreach ($element_settings as $key => $value) {
+          $classes[$element_name][] = $prefix . $value;
+        }
+      }
+    }
+    return $classes;
   }
 
 }

@@ -1,20 +1,25 @@
-{% set container = settings.wrapper_container %}
-{% set sizes = settings.sizes %}
-{% set offsets = settings.offsets %}
+{% set container = FALSE %}
+{% set container_classes = [] %}
+{% set wrapper_classes = [] %}
 {% set main_classes = [] %}
-{% for key, val in sizes.main %}
-  {% set main_classes = main_classes|merge([val]) %}
-{% endfor %}
-{% for key, val in offsets %}
-  {% set main_classes = main_classes|merge([key ~ '-' ~ val]) %}
+
+{% for key, val in settings.classes %}
+  {% if key == 'container' %}
+    {% set container = TRUE %}
+    {% set container_classes = container_classes|merge(val) %}
+  {% elseif key == 'wrapper'  %}
+    {% set wrapper_classes = wrapper_classes|merge(val) %}
+  {% elseif key == 'main' %}
+    {% set main_classes = main_classes|merge(val) %}
+  {% endif %}
 {% endfor %}
 
 {% if container %}
-  <div class="container">
+  <div{{ attributes.addClass(container_classes).addClass('container') }}>
     {% endif %}
-    <div {{ attributes.addClass('flex') }}>
+    <div{{ attributes.addClass(wrapper_classes) }}>
       {% if content.main %}
-        <div {{ region_attributes.main.addClass(main_classes) }}>
+        <div{{ region_attributes.main.addClass(main_classes) }}>
           {{ content.main }}
         </div>
       {% endif %}

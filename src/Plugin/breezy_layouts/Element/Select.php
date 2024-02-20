@@ -13,6 +13,6 @@ namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
  *   multiple = FALSE,
  * )
  */
-class Select extends BreezyLayoutsElementBase implements BreezyLayoutsElementInterface {
+class Select extends OptionsBase {
 
 }
