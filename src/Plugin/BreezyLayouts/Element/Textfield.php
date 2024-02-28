@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
+namespace Drupal\breezy_layouts\Plugin\BreezyLayouts\Element;
 
 /**
  * Provides a textfield element.

@@ -163,7 +163,7 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
       if (!isset($plugin_configuration['_entity'])) {
         $plugin_configuration['_entity'] = $variant->id();
       }
-      /** @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface $plugin */
+      /** @var \Drupal\breezy_layouts\Plugin\BreezyLayouts\Variant\BreezyLayoutsVariantPluginInterface $plugin */
       $plugin = $this->variantPluginManager->createInstance($plugin_id, $plugin_configuration);
       $form['layout'] = [
         '#type' => 'hidden',
@@ -209,7 +209,6 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
    * {@inheritdoc}
    */
   protected function copyFormValuesToEntity(EntityInterface $entity, array $form, FormStateInterface $form_state) {
-    $logger = \Drupal::logger('copyFormValuesToEntity');
 
     $values = $form_state->getValues();
     if ($this->entity instanceof EntityWithPluginCollectionInterface) {
@@ -231,22 +230,27 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
 
     if (isset($values['plugin_configuration']) && !empty($values['plugin_configuration']) && !empty($values['plugin_id'])) {
       $plugin_configuration = $entity->getPluginConfiguration();
-      $logger->warning('$values[plugin_configuration]: <pre>' . print_r($values['plugin_configuration'], TRUE) . '</pre>');
-      $logger->alert('$plugin_configuration <pre>' . print_r($plugin_configuration, TRUE) . '</pre>');
       // @todo Merge $form_state with $plugin_configuration.
       // @see BreezyLayoutsVariantPluginBase::mergeFormState.
-      //$plugin_configuration = $this->getPluginConfiguration($values['plugin_id'], $form['plugin_configuration'], $form_state);
 
-      $breakpoints = $plugin_configuration['breakpoints'];
       $config_values = [];
-      foreach ($breakpoints as $breakpoint_name => $breakpoint_settings) {
-        if (!$breakpoint_settings['enabled']) {
-          continue;
+      if (isset($plugin_configuration['breakpoints']) && $breakpoints = $plugin_configuration['breakpoints']) {
+        foreach ($breakpoints as $breakpoint_name => $breakpoint_settings) {
+          // If the entity settings are not set.
+          if (!isset($breakpoint_settings['enabled']) || !$breakpoint_settings['enabled']) {
+            // Check if the form state has the breakpoint enabled.
+            if (!isset($values['plugin_configuration']['breakpoints'][$breakpoint_name]['enabled'])) {
+              continue;
+            }
+          }
+          // Get $properties (fields) from $config.
+          $config_values[$breakpoint_name] = $breakpoint_settings;
+
         }
-        // Get $properties (fields) from $config.
-        $config_values[$breakpoint_name] = $breakpoint_settings;
       }
-      $values['plugin_configuration']['breakpoints'] = NestedArray::mergeDeepArray([$values['plugin_configuration']['breakpoints'], $config_values]);
+      if (!empty($config_values)) {
+        $values['plugin_configuration']['breakpoints'] = NestedArray::mergeDeepArray([$values['plugin_configuration']['breakpoints'], $config_values]);
+      }
       $entity->set('plugin_configuration', $values['plugin_configuration']);
     }
   }
@@ -270,7 +274,7 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
     /** @var \Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface $variant */
     $variant = $this->entity;
     $configuration = ['_entity' => $variant->id()];
-    /** @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface $plugin */
+    /** @var \Drupal\breezy_layouts\Plugin\BreezyLayouts\Variant\BreezyLayoutsVariantPluginInterface $plugin */
     $plugin = $this->variantPluginManager->createInstance($pluginId, $configuration);
 
     $plugin->submitConfigurationForm($formField, $formState);

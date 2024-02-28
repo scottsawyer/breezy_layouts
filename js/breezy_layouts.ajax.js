@@ -156,7 +156,7 @@
   };
 
   /**
-   * Command to refresh the current breezy_layouts page.
+   * Command to refresh the current BreezyLayouts page.
    *
    * @param {Drupal.Ajax} [ajax]
    *   {@link Drupal.Ajax} object created by {@link Drupal.ajax}.
@@ -184,7 +184,7 @@
       $('.breezy-layouts-ajax-refresh').trigger('click');
     }
     else {
-      // Clear unsaved information flag so that the current breezy_layouts page
+      // Clear unsaved information flag so that the current BreezyLayouts page
       // can be redirected.
       // @see Drupal.behaviors.breezylayoutsUnsaved.clear
       if (Drupal.behaviors.breezylayoutsUnsaved) {

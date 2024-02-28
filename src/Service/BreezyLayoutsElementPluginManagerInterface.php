@@ -78,7 +78,7 @@ interface BreezyLayoutsElementPluginManagerInterface {
    * @param \Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface $entity
    *   A Breezy Layouts Variant entity.
    *
-   * @return \Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface
+   * @return \Drupal\breezy_layouts\Plugin\BreezyLayouts\Element\BreezyLayoutsElementInterface
    *   A Breezy Layouts element plugin instance
    *
    * @throws \Exception

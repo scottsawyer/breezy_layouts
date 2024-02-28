@@ -6,7 +6,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element\FormElement;
 
 /**
- * Provides a form element for managing breezy_layouts element options.
+ * Provides a form element for managing BreezyLayouts element options.
  *
  * @FormElement("breezy_layouts_element_options")
  */

@@ -40,13 +40,6 @@ class BreezyLayoutsElementEditForm extends BreezyLayoutsElementFormBase {
     $form['#title'] = $this->t('Edit element');
 
     $form = parent::buildForm($form, $form_state, $breezy_layouts_variant, $key, $parent_key, $type);
-    $form['test'] = [
-      '#type' => 'details',
-      '#title' => $this->t('debug'),
-    ];
-    $form['test']['debug'] = [
-      '#markup' => 'form: <pre>' . print_r($form['properties']['element'], TRUE) . '</pre>',
-    ];
     return $form;
   }
 

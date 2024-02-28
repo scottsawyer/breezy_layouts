@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
+namespace Drupal\breezy_layouts\Plugin\BreezyLayouts\Element;
 
 use Drupal\Core\Form\FormStateInterface;
 

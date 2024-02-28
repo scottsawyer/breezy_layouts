@@ -4,7 +4,7 @@ namespace Drupal\breezy_layouts_ui\Form;
 
 use Drupal\breezy_layouts\Entity\BreezyLayoutsVariant;
 use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
-use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
+use Drupal\breezy_layouts\Plugin\BreezyLayouts\Element\BreezyLayoutsElementInterface;
 use Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;

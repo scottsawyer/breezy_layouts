@@ -4,8 +4,6 @@ namespace Drupal\breezy_layouts\Form;
 
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\CloseDialogCommand;
-use Drupal\Core\Ajax\AnnounceCommand;
-use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Template\Attribute;
 use Drupal\Core\Form\FormStateInterface;
@@ -103,7 +101,6 @@ trait BreezyLayoutsAjaxFormTrait {
     $form_id = (method_exists($this, 'getBaseFormId') ? $this->getBaseFormId() : $this->getFormId());
     return Html::getId($form_id . '-ajax');
   }
-
 
   /**
    * Add Ajax support to a form.
@@ -314,6 +311,5 @@ trait BreezyLayoutsAjaxFormTrait {
     $response->addCommand(new CloseDialogCommand());
     return $response;
   }
-
 
 }

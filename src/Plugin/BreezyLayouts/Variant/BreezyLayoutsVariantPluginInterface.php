@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Variant;
+namespace Drupal\breezy_layouts\Plugin\BreezyLayouts\Variant;
 
 use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\Core\Form\FormStateInterface;

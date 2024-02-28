@@ -1,10 +1,9 @@
 <?php
 
-namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
+namespace Drupal\breezy_layouts\Plugin\BreezyLayouts\Element;
 
 use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
 use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
-use Drupal\breezy_layouts\Element\BreezyLayoutsOptions;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\OptGroup;
@@ -15,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Provides a base plugin for BreezyLayoutsElement plugin.
  *
- * @package Drupal\breezy_layouts\Plugin\breezy_layouts\Element.
+ * @package Drupal\breezy_layouts\Plugin\BreezyLayouts\Element.
  */
 class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElementInterface {
 
@@ -302,7 +301,6 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    $logger = \Drupal::logger('buildConfigurationForm');
     $element = $form_state->get('element');
     if (is_null($element)) {
       throw new \Exception('Element must be defined in the $form_state.');
@@ -435,11 +433,8 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
    *   TRUE is the variant has any inputs.
    */
   protected function setConfigurationFormDefaultValueRecursive(array &$form, array &$element_properties) {
-    $logger = \Drupal::logger('setConfigurationFormDefaultValueRecursive');
     $has_input = FALSE;
-
     foreach ($form as $property_name => &$property_element) {
-      $logger->notice('$property_name (before): ' . $property_name . '; $property_element: <pre>' . print_r($property_element, TRUE) . '</pre>$element_properties: <pre>' . print_r($element_properties, TRUE) . '</pre>$form: <pre>' . print_r($form, TRUE) . '</pre>');
       if (BreezyLayoutsElementHelper::property($property_name)) {
         continue;
       }
@@ -447,11 +442,9 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
       if ($property_name == 'property') {
         continue;
       }
-      $logger->notice('$property_name (after): ' . $property_name . '; $property_element: <pre>' . print_r($property_element, TRUE) . '</pre>$element_properties: <pre>' . print_r($element_properties, TRUE) . '</pre>');
 
       $is_input = $this->elementManager->getElementInstance($property_element)->isInput($property_element);
       if ($is_input) {
-        $logger->notice('$is_input: TRUE - $property_name: ' . $property_name . '; $element_properties: <pre>' . print_r($element_properties, TRUE) . '</pre>');
         if (array_key_exists($property_name, $element_properties)) {
           // If this property exists, then set its default value.
           $this->setConfigurationFormDefaultValue($form, $element_properties, $property_element, $property_name);;
@@ -460,13 +453,11 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
       }
       else {
         // Recurse down this container and see if it's children have inputs.
-        $logger->notice('!$is_input $property_name: ' . $property_name . ' - $property_element: <pre>' . print_r($property_element, TRUE) . '</pre>');
         $container_has_input = $this->setConfigurationFormDefaultValueRecursive($property_element, $element_properties);
         if ($container_has_input) {
           $has_input = TRUE;
         }
       }
-      /**/
     }
 
     return $has_input;
@@ -485,13 +476,12 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
    *   THe property's name.
    */
   protected function setConfigurationFormDefaultValue(array &$form, array &$element_properties, array &$property_element, $property_name) {
-    $logger = \Drupal::logger('setConfigurationFormDefaultValue');
+
     $default_value = '';
     if (isset($element_properties['element'][$property_name])) {
       $default_value = $element_properties['element'][$property_name];
     }
     $type = $property_element['#type'] ?? NULL;
-    $logger->notice('$type: ' . $type . '; $default_value: <pre>' . print_r($default_value, TRUE) . '</pre>');
 
     switch ($type) {
       case 'radios':

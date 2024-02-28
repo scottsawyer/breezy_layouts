@@ -5,7 +5,6 @@ namespace Drupal\breezy_layouts\Entity;
 use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Component\Utility\NestedArray;
-use Drupal\breezy_layouts\Service\BreezyLayoutsVariantPluginManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
@@ -13,9 +12,9 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * @ConfigEntityType(
  *   id = "breezy_layouts_variant",
- *   label = @Translation("Breezy layout variant"),
- *   label_collection = @Translation("Breezy layout variants"),
- *   label_plural = @Translation("Breezy layout variants"),
+ *   label = @Translation("Breezy Layouts Variant"),
+ *   label_collection = @Translation("Breezy Layouts Variants"),
+ *   label_plural = @Translation("Breezy Layouts Variants"),
  *   label_count = @PluralTranslation(
  *      singular = "@count variant",
  *      plural = "@count variants",
@@ -157,6 +156,7 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
     if (!$this->isEnabled()) {
       return FALSE;
     }
+    return TRUE;
   }
 
   /**
@@ -215,8 +215,11 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
     if (empty($parent_array)) {
       return $this;
     }
-    // Get variant plugin, determine where the $key and $parent_key goes, inject the new element, set it's properties.
+    // Get variant plugin, determine where the $key and $parent_key goes, inject the new element, set its properties.
     $plugin_configuration = $this->getPluginConfiguration();
+    if (!$plugin_configuration) {
+      $plugin_configuration = [];
+    }
     $existing_properties = NestedArray::getValue($plugin_configuration, $parent_array);
     if (is_array($existing_properties)) {
       $existing_properties[$key] = $properties;
@@ -247,6 +250,7 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
    */
   protected function setElementPropertiesRecursive(array &$elements, $key, array $properties, array $parent_key = []) {
     foreach ($parent_key as $parent_array_key) {
+      // @todo Remember why this was here.
       if (array_key_exists($parent_array_key, $elements)) {
 
       }
@@ -286,6 +290,7 @@ class BreezyLayoutsVariant extends ConfigEntityBase implements BreezyLayoutsVari
    *   The element parent.
    */
   public function deleteElement($key, array $parent_key) {
+    array_push($parent_key, $key);
     $configuration = $this->getPluginConfiguration();
     NestedArray::unsetValue($configuration, $parent_key, $key);
     $this->setPluginConfiguration($configuration);

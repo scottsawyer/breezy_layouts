@@ -2,8 +2,6 @@
 
 namespace Drupal\breezy_layouts\Service;
 
-use Drupal\breezy_layouts\Annotation\BreezyLayoutsElement;
-use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
@@ -30,7 +28,7 @@ class BreezyLayoutsElementPluginManager extends DefaultPluginManager implements 
    *   The module handler to invoke the alter hook with.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
-    parent::__construct('Plugin/breezy_layouts/Element', $namespaces, $module_handler, 'Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface', 'Drupal\breezy_layouts\Annotation\BreezyLayoutsElement');
+    parent::__construct('Plugin/BreezyLayouts/Element', $namespaces, $module_handler, 'Drupal\breezy_layouts\Plugin\BreezyLayouts\Element\BreezyLayoutsElementInterface', 'Drupal\breezy_layouts\Annotation\BreezyLayoutsElement');
     $this->setCacheBackend($cache_backend, 'breezy_layouts_element');
     $this->alterInfo('breezy_layouts_element');
   }
@@ -55,7 +53,7 @@ class BreezyLayoutsElementPluginManager extends DefaultPluginManager implements 
     $element_plugin->finalize($element);
     $element_plugin->setDefaultValue($element);
 
-    // Allow modules to alter the breezy_layouts element.
+    // Allow modules to alter the BreezyLayouts element.
     // @see \Drupal\Core\Field\WidgetBase::formSingleElement()
     $hooks = ['breezy_layouts_element'];
     if (!empty($element['#type'])) {
@@ -64,7 +62,7 @@ class BreezyLayoutsElementPluginManager extends DefaultPluginManager implements 
     $context = ['form' => $form];
     $this->moduleHandler->alter($hooks, $element, $form_state, $context);
 
-    // Allow handlers to alter the breezy_layouts element.
+    // Allow handlers to alter the BreezyLayouts element.
     // @todo Allow altering the element.
   }
 
@@ -92,7 +90,7 @@ class BreezyLayoutsElementPluginManager extends DefaultPluginManager implements 
     elseif (isset($element['#type']) && $this->hasDefinition($element['#type'])) {
       return $element['#type'];
     }
-    elseif (isset($element['element']['type']) && $this->hasDefinition($element['#type'])) {
+    elseif (isset($element['element']['type']) && $this->hasDefinition($element['element']['type'])) {
       return $element['element']['type'];
     }
 
@@ -112,7 +110,7 @@ class BreezyLayoutsElementPluginManager extends DefaultPluginManager implements 
   public function getElementInstance(array $element, EntityInterface $entity = NULL) {
     $plugin_id = $this->getElementPluginId($element);
 
-    /** @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface $element_plugin */
+    /** @var \Drupal\breezy_layouts\Plugin\BreezyLayouts\Element\BreezyLayoutsElementInterface $element_plugin */
     $element_plugin = $this->createInstance($plugin_id);
 
     if ($entity) {

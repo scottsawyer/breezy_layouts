@@ -4,7 +4,6 @@ namespace Drupal\breezy_layouts\Form;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormBase;
-use Drupal\Core\Form\ConfirmFormHelper;
 
 /**
  * Provides a base class for deleting.

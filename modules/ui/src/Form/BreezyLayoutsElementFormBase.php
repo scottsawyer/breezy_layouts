@@ -178,8 +178,6 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $logger = \Drupal::logger('BreezyLayoutsElementFormBase::submitForm');
-    $logger->notice('$form_state->getValues() <pre>' . print_r($form_state->getValues(), TRUE) . '</pre>');
     $parent_key = $form_state->getValue('parent_key');
     $key = $form_state->getValue('key');
 
@@ -194,11 +192,11 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
 
     // Add/update the element to the variant form.
     $properties = $element_plugin->getConfigurationFormProperties($form, $subform_state);
-    $logger->notice('$properties: <pre>' . print_r($properties, TRUE) . '</pre> $key: ' . $key . '; $parent_key: <pre>' . print_r($parent_key, TRUE) . '</pre>');
+
+    // Make sure entire variant form is saved in its current state.
     $this->variant->setElementProperties($key, $properties, $parent_key);
     $this->variant->save();
 
-    $add_element = Html::getClass($parent_key);
 
     if ($this->requestStack->getCurrentRequest()->query->get('destination')) {
       $redirect_destination = $this->getRedirectDestination();
@@ -336,8 +334,6 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
    *   The form component.
    */
   public function addOptionCallback(array &$form, FormStateInterface $form_state) {
-    $logger = \Drupal::logger('addOptionCallback');
-    $logger->alert('$num_lines: ' . $form_state->get('num_lines'));
     return $form['properties']['element']['options'];
   }
 
@@ -352,8 +348,6 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
    *   The form state.
    */
   public function addOptionSubmit(array &$form, FormStateInterface $form_state) {
-    $logger = \Drupal::logger('addOptionSubmit');
-    $logger->warning('num_lines: ' . $form_state->get('num_lines'));
     $form_state->set('num_lines', $form_state->get('num_lines') + 1);
     $form_state->setRebuild();
   }

@@ -33,7 +33,7 @@ class BreezyLayoutsElementDeleteForm extends BreezyLayoutsDeleteFormBase {
   /**
    * An element.
    *
-   * @var \Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface
+   * @var \Drupal\breezy_layouts\Plugin\BreezyLayouts\Element\BreezyLayoutsElementInterface
    */
   protected $breezyLayoutsElement;
 
@@ -147,7 +147,7 @@ class BreezyLayoutsElementDeleteForm extends BreezyLayoutsDeleteFormBase {
   /**
    * Return the element plugin associated with this form.
    *
-   * @return \Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface
+   * @return \Drupal\breezy_layouts\Plugin\BreezyLayouts\Element\BreezyLayoutsElementInterface
    *   An element.
    */
   protected function getElementPlugin() {

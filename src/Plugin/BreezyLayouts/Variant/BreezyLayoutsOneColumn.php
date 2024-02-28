@@ -1,13 +1,11 @@
 <?php
 
-namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Variant;
+namespace Drupal\breezy_layouts\Plugin\BreezyLayouts\Variant;
 
 use Drupal\breezy_layouts\Service\BreezyLayoutsTailwindClassServiceInterface;
-use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\breakpoint\BreakpointManagerInterface;
-use Drupal\Core\Url;
 use Drupal\Core\Layout\LayoutPluginManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -123,17 +121,6 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
     $form = parent::buildConfigurationForm($form, $form_state);
     $variant = $form_state->get('variant');
     $breakpoints_wrapper_id = 'breakpoints-wrapper';
-    $form['debug'] = [
-      '#type' => 'details',
-      '#title' => $this->t('Debug'),
-    ];
-    $form['debug']['config'] = [
-      '#markup' => 'configuration: <pre>' . print_r($this->configuration, TRUE) . '</pre>',
-      '#allowed_tags' => ['pre'],
-    ];
-
-    $breakpoint_group = FALSE;
-
 
     $breakpoint_group = $this->breezyLayoutsSettings->get('breakpoint_group');
     if ($breakpoint_group) {
@@ -143,32 +130,6 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
         '#value' => $breakpoint_group,
       ];
     }
-
-    /*
-    if ($this->configuration['breakpoint_group']) {
-      $breakpoint_group = $this->configuration['breakpoint_group'];
-      $form_state->set('breakpoint_group', $breakpoint_group);
-      $form['breakpoint_group'] = [
-        '#type' => 'hidden',
-        '#value' => $breakpoint_group,
-      ];
-    }
-    /**/
-
-    /*
-    $form['breakpoint_group'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Breakpoint group'),
-      '#default_value' => $breakpoint_group ?? '',
-      '#options' => $this->breakpointManager->getGroups(),
-      '#required' => TRUE,
-      '#empty_option'=>$this->t('- Select -'),
-      '#ajax' => [
-        'callback' => [$this, 'changeBreakpointGroup'],
-        'wrapper' => $breakpoints_wrapper_id,
-      ],
-    ];
-    /**/
 
     $form['breakpoints'] = [
       '#type' => 'fieldset',
@@ -187,34 +148,38 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
       $breakpoint_group_breakpoints = $this->breakpointManager->getBreakpointsByGroup($breakpoint_group);
 
       foreach ($breakpoint_group_breakpoints as $breakpoint_name => $breakpoint) {
-        // Breakpoints are represented with a dot ".", which is illegal.
+        // Breakpoints may be represented with a dot ".", which is illegal as a
+        // key.
         // Convert the dot to double underscore, but convert back.
+        // @todo Create a method that properly sanitizes separaters.
         $breakpoint_name = str_replace('.', '__', $breakpoint_name);
         $breakpoint_wrapper_id = 'breakpoints-' . $breakpoint_name;
+        $enabled = FALSE;
+        if (isset($this->configuration['breakpoints'][$breakpoint_name]['enabled'])) {
+          $enabled = $this->configuration['breakpoints'][$breakpoint_name]['enabled'];
+        }
         $form['breakpoints'][$breakpoint_name] = [
           '#type' => 'details',
           '#title' => $breakpoint->getLabel(),
           '#tree' => TRUE,
           '#prefix' => '<div id="' . $breakpoint_wrapper_id . '">',
           '#suffix' => '</div>',
-          '#open' => $this->configuration['breakpoints'][$breakpoint_name]['enabled'] ?? FALSE,
+          '#open' => $enabled,
         ];
 
+        $breakpoints_form_state = $form_state->get(['plugin_configuration', 'breakpoints']);
+        if ($breakpoints_form_state && isset($breakpoints_form_state[$breakpoint_name]['enabled'])) {
+          $enabled = $breakpoints_form_state[$breakpoint_name]['enabled'];
+        }
         $form['breakpoints'][$breakpoint_name]['enabled'] = [
           '#type' => 'checkbox',
           '#title' => $this->t('Enable'),
-          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['enabled'] ?? FALSE,
-        ];
-
-        $form['breakpoints'][$breakpoint_name]['prefix'] = [
-          '#type' => 'textfield',
-          '#title' => $this->t('Breakpoint prefix'),
-          '#default_value' => $this->configuration['breakpoints'][$breakpoint_name]['prefix'] ?? '',
-          '#states' => [
-            'visible' => [
-              'input[name="plugin_configuration[breakpoints][' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
-            ],
+          '#default_value' => $enabled,
+          '#ajax' => [
+            'wrapper' => $breakpoint_wrapper_id,
+            'callback' => [$this, 'pluginCallback'],
           ],
+          '#breakpoint_name' => $breakpoint_name,
         ];
 
         $form['breakpoints'][$breakpoint_name]['container'] = [
@@ -303,69 +268,6 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
   }
 
   /**
-   * Callback for Breakpoint group selection.
-   *
-   * @param array $form
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *
-   * @return array
-   */
-  public function changeBreakpointGroup(array &$form, FormStateInterface $form_state) {
-    $breakpoint_group = $form_state->getValue(['plugin_configuration', 'breakpoint_group']);
-    $form_state->set('breakpoint_group', $breakpoint_group);
-    $form_state->setRebuild();
-    return $form['plugin_configuration']['breakpoints'];
-  }
-
-  /**
-   * Callback for columns selection.
-   *
-   * @param array $form
-   *   The form array.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form_state.
-   *
-   * @return array
-   */
-  public function columnsCallback(array &$form, FormStateInterface $form_state) {
-    return $form['plugin_configuration']['breakpoints'];
-  }
-
-  /**
-   * Callback for components selection.
-   *
-   * @param array $form
-   *   The form array
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state.
-   *
-   * @return array;
-   */
-  public function changeOverrides(array &$form, FormStateInterface $form_state) {
-    $components = $form_state->getValue(['plugin_configuration', 'overrides', 'override_components']);
-    $form_state->set('overrides', $components);
-    return $form['plugin_configuration']['overrides']['components'];
-  }
-
-  /**
-   * Maps the parent child relationship of css properties.
-   *
-   * Certain CSS properties only make sense at certain levels (parent / child).
-   *
-   * @param string|null $level
-   *   The level of the parent child tree.
-   *
-   * @return array
-   *   An array of properties that apply at the provided level.
-   */
-  protected function cssPropertyMap($level = NULL) : array {
-    $properties = $this->tailwindClasses->getPropertyMap();
-
-
-    return $properties;
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function layoutForm(array $form, FormStateInterface $form_state) {
@@ -393,15 +295,23 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
               '#title' => $breakpoint_groups_breakpoints[$breakpoint_name_converted]->getLabel(),
             ];
 
-            $prefix = '';
-            if (isset($breakpoint_settings['prefix'])) {
-              $prefix = $breakpoint_settings['prefix'];
-            }
+            $prefix = $this->getPrefixForBreakpoint($breakpoint_name);
 
-            $form['breakpoints'][$breakpoint_name]['prefix'] = [
-              '#type' => 'value',
-              '#value' => $prefix,
-            ];
+            if (isset($breakpoint_settings['container']['properties']) && !empty($breakpoint_settings['container']['properties'])) {
+              $form['breakpoints'][$breakpoint_name]['container'] = [
+                '#type' => 'fieldset',
+                '#title' => $this->t('Container'),
+                '#description' => $this->t('Container settings'),
+              ];
+              foreach ($breakpoint_settings['container']['properties'] as $property_name => $property_values) {
+                $element = $property_values['element'];
+                $default_value = '';
+                if (isset($default_settings['breakpoints'][$breakpoint_name]['container'][$property_name])) {
+                  $default_value = $default_settings['breakpoints'][$breakpoint_name]['container'][$property_name];
+                }
+                $form['breakpoints'][$breakpoint_name]['container'][$property_name] = $this->buildFormElement($element, $prefix, $default_value);
+              }
+            }
 
             // Wrapper.
             if (isset($breakpoint_settings['wrapper']['properties']) && !empty($breakpoint_settings['wrapper']['properties'])) {
@@ -443,12 +353,12 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase {
                 }
               }
             }
-
-
           }
         }
       }
     }
+
     return $form;
   }
+
 }

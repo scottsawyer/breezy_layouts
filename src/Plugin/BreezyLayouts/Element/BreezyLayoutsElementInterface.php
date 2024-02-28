@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
+namespace Drupal\breezy_layouts\Plugin\BreezyLayouts\Element;
 
 use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\Core\Entity\EntityInterface;

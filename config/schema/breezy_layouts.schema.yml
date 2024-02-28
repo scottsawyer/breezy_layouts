@@ -1,6 +1,38 @@
 breezy_layouts.settings:
   type: config_object
   label: 'Breezy Layouts settings'
+  mapping:
+    layouts:
+      type: sequence
+      label: 'Layouts'
+      orderby: value
+      sequence:
+        type: string
+        label: 'Breakpoint'
+    breakpoint_group:
+      type: string
+      label: 'Breakpoint group'
+    breakpoints:
+      type: mapping
+      label: 'Breakpoints'
+      mapping:
+        breakpoint_name:
+          type: mapping
+          label: 'Breakpoint name'
+          mapping:
+            prefix:
+              type: string
+              label: 'Breakpoint prefix'
+    cdn:
+      type: mapping
+      label: 'CDN'
+      mapping:
+        enabled:
+          type: boolean
+          label: 'Enabled'
+        url:
+          type: string
+          label: 'Url'
 
 breezy_layouts.breezy_layouts_variant.*:
   type: config_entity
@@ -34,6 +66,16 @@ breezy_layouts.variant_plugin_configuration:
     breakpoint_group:
       type: string
       label: 'Breakpoint group'
+    breakpoints:
+      type: mapping
+      label: 'Breakpoints'
+      mapping:
+        type: mapping
+        label: 'Breakpoint name'
+        mapping:
+          enabled:
+            type: boolean
+            label: 'Enabled'
 
 breezy_layouts.breezy_layouts_element.plugin.*:
   type: breezy_layouts.element_plugin_configuration

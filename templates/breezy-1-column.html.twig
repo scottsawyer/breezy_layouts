@@ -14,10 +14,13 @@
   {% endif %}
 {% endfor %}
 
+{% set wrapper_attributes = create_attribute() %}
+
 {% if container %}
-  <div{{ attributes.addClass(container_classes).addClass('container') }}>
+  {% set container_attributes = create_attribute() %}
+  <div{{ container_attributes.addClass(container_classes).addClass('container') }}>
     {% endif %}
-    <div{{ attributes.addClass(wrapper_classes) }}>
+    <div{{ wrapper_attributes.addClass(wrapper_classes) }}>
       {% if content.main %}
         <div{{ region_attributes.main.addClass(main_classes) }}>
           {{ content.main }}

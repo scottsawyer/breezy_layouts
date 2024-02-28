@@ -6,7 +6,7 @@ use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\OptGroup;
 
 /**
- * Helper for breezy_layouts options based methods.
+ * Helper for BreezyLayouts options based methods.
  */
 class BreezyLayoutsOptionsHelper {
 

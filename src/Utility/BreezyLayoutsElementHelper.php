@@ -3,9 +3,8 @@
 namespace Drupal\breezy_layouts\Utility;
 
 use Drupal\Component\Render\MarkupInterface;
-use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementBase;
 use Drupal\Core\Render\Element;
-use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface;
+use Drupal\breezy_layouts\Plugin\BreezyLayouts\Element\BreezyLayoutsElementInterface;
 
 /**
  * Helper class for Breezy Layouts Element.
@@ -216,7 +215,7 @@ class BreezyLayoutsElementHelper {
   /**
    * Get the element title from the element.
    *
-   * @param \Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementInterface $element
+   * @param \Drupal\breezy_layouts\Plugin\BreezyLayouts\Element\BreezyLayoutsElementInterface $element
    *   The element.
    *
    * @return string
@@ -360,13 +359,13 @@ class BreezyLayoutsElementHelper {
    *   The element definition array.
    * @param string $prefix
    *   The element value "prefix" (for the breakpoint).
-   * @param string $default_value
+   * @param mixed $default_value
    *   The default value for the field.
    *
    * @return array
    *   A renderable array of the element.
    */
-  public static function buildFormElement(array $element_definition, string $prefix = '', string $default_value = '') {
+  public static function buildFormElement(array $element_definition, string $prefix = '', $default_value = NULL) {
     $form_element = [];
     foreach ($element_definition as $key => $value) {
       // Handle options.
@@ -381,7 +380,7 @@ class BreezyLayoutsElementHelper {
         $form_element['#' . $key] = $value;
       }
 
-      if (!empty($default_value)) {
+      if ($default_value) {
         $form_element['#default_value'] = $default_value;
       }
     }

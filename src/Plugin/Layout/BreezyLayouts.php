@@ -209,7 +209,6 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    $logger = \Drupal::logger('BreezyLayouts::submitConfigurationForm');
     $variant = $form_state->getValue('variant');
     $this->configuration['variant'] = $variant;
     $variant_entity = NULL;
@@ -221,7 +220,6 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
       $variant_settings = $form_state->getValue('variant_settings');
       $this->configuration['variant_settings'] = $variant_settings;
       $classes = $variant_entity->buildLayoutClasses($variant_settings);
-      $logger->notice('$classes: <pre>' . print_r($classes, TRUE) . '</pre>');
       $this->configuration['classes'] = $classes;
     }
     parent::submitConfigurationForm($form, $form_state);

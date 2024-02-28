@@ -1,9 +1,8 @@
 <?php
 
-namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
+namespace Drupal\breezy_layouts\Plugin\BreezyLayouts\Element;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\breezy_layouts\Plugin\breezy_layouts\Element\BreezyLayoutsElementBase;
 
 /**
  * Provides a generic element, used as fallback.

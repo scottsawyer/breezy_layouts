@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Variant;
+namespace Drupal\breezy_layouts\Plugin\BreezyLayouts\Variant;
 
 use Drupal\breezy_layouts\Entity\BreezyLayoutsVariantInterface;
 use Drupal\Component\Utility\NestedArray;
@@ -19,7 +19,7 @@ use Drupal\breakpoint\BreakpointManagerInterface;
 /**
  * Provides a base variant plugin class.
  *
- * @package Drupal\breezy_layouts\Plugin\breezy_layouts\Variant
+ * @package Drupal\breezy_layouts\Plugin\BreezyLayouts\Variant
  */
 abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements ContainerFactoryPluginInterface, BreezyLayoutsVariantPluginInterface {
 
@@ -42,7 +42,8 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
   /**
    * The layout plugin manager.
    *
-   * @var \Drupal\Core\Layout\LayoutPluginManagerInterface $layout_plugin_manager
+   * @var \Drupal\Core\Layout\LayoutPluginManagerInterface
+   *   $layout_plugin_manager
    */
   protected $layoutPluginManager;
 
@@ -202,7 +203,7 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    *   The element definition array.
    * @param string $prefix
    *   A prefix (for the breakpoint).
-   * @param string $default_value
+   * @param mixed $default_value
    *   The default value for the field.
    *
    * @return array
@@ -210,8 +211,25 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
    *
    * @see \Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper
    */
-  protected function buildFormElement(array $element_definition, string $prefix = '', string $default_value = '') {
+  protected function buildFormElement(array $element_definition, string $prefix = '', $default_value = '') {
     return BreezyLayoutsElementHelper::buildFormElement($element_definition, $prefix, $default_value);
+  }
+
+  /**
+   * Get prefix for breakpoint.
+   *
+   * @param string $breakpoint_name
+   *   The breakpoint name.
+   *
+   * @return string
+   *   The prefix set for the breakpoint name.
+   */
+  protected function getPrefixForBreakpoint(string $breakpoint_name) {
+    $breakpoints = $this->breezyLayoutsSettings->get('breakpoints');
+    if (isset($breakpoints[$breakpoint_name])) {
+      return $breakpoints[$breakpoint_name]['prefix'];
+    }
+    return '';
   }
 
   /**
@@ -466,11 +484,41 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
   }
 
   /**
+   * Plugin callback.
+   *
+   * Callback when a breakpoint is enabled.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form_state object.
+   *
+   * @return array
+   *   The plugin configuration portion of the form array.
+   */
+  public function pluginCallback(array $form, FormStateInterface $form_state) {
+    $trigger = $form_state->getTriggeringElement();
+    $breakpoint_name = $trigger['#breakpoint_name'];
+    $input = $form_state->getUserInput();
+    $plugin_configuration = $input['plugin_configuration'];
+    $enabled = $plugin_configuration['breakpoints'][$breakpoint_name]['enabled'];
+    if ($form_state->getFormObject() instanceof \Drupal\Core\Entity\EntityFormInterface) {
+      /** @var \Drupal\Core\Entity\EntityInterface $entity */
+      $entity = $form_state->getFormObject()->getEntity();
+      $stored_configuration = $entity->getPluginConfiguration();
+      NestedArray::setValue($stored_configuration, ['breakpoints', $breakpoint_name, 'enabled'], $enabled);
+      $entity->set('plugin_configuration', $stored_configuration);
+      $entity->save();
+    }
+    return $form['plugin_configuration']['breakpoints'][$breakpoint_name];
+  }
+
+  /**
    * Variant save.
    *
    * Merges $form_state with $plugin_configuration.
    *
-   * @param array $plugin_configuration.
+   * @param array $configuration
    *   The plugin configuration.
    * @param array $form_values
    *   The form values.
@@ -503,16 +551,17 @@ abstract class BreezyLayoutsVariantPluginBase extends PluginBase implements Cont
       return $classes;
     }
     foreach ($layout_settings['breakpoints'] as $breakpoint_name => $breakpoint_settings) {
-      $prefix = '';
-      if (isset($breakpoint_settings['prefix'])) {
-        if (!empty($breakpoint_settings['prefix'])) {
-          $prefix = $breakpoint_settings['prefix'];
-        }
-        unset($breakpoint_settings['prefix']);
-      }
+
+      $prefix = $this->getPrefixForBreakpoint($breakpoint_name);
       foreach ($breakpoint_settings as $element_name => $element_settings) {
         foreach ($element_settings as $key => $value) {
-          $classes[$element_name][] = $prefix . $value;
+          if (is_array($value)) {
+            // Checkboxes can have arrays of classes.
+            $classes[$element_name][] = implode(' ' . $prefix, $value);
+          }
+          else {
+            $classes[$element_name][] = $prefix . $value;
+          }
         }
       }
     }

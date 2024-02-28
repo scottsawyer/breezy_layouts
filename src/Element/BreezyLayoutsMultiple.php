@@ -785,7 +785,7 @@ class BreezyLayoutsMultiple extends FormElement {
    *   The current state of the form.
    */
   public static function addItemsSubmit(array &$form, FormStateInterface $form_state) {
-    // Get the breezy_layouts list element by going up two levels.
+    // Get the BreezyLayouts list element by going up two levels.
     $button = $form_state->getTriggeringElement();
     $element =& NestedArray::getValue($form, array_slice($button['#array_parents'], 0, -2));
 
@@ -909,7 +909,7 @@ class BreezyLayoutsMultiple extends FormElement {
   }
 
   /**
-   * Validates breezy_layouts multiple element.
+   * Validates BreezyLayouts multiple element.
    */
   public static function validateBreezyLayoutsMultiple(&$element, FormStateInterface $form_state, &$complete_form) {
     // IMPORTANT: Must get values from the $form_states since sub-elements

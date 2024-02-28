@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * @file
+ * Contains functions for BreezyLayouts.
+ */
+
+/**
+ * Implements hook_library_info_build().
+ */
+function breezy_layouts_library_info_build() {
+  $libraries = [];
+  // Load the configuration settings.
+  $configuration_settings = \Drupal::config('breezy_layouts.settings');
+
+  $cdn = $configuration_settings->get('cdn');
+  if ($cdn['enabled'] && !empty($cdn['url'])) {
+    $libraries['cdn'] = [
+      'js' => [
+        $cdn['url'] => [
+          'external' => TRUE,
+        ],
+      ],
+    ];
+  }
+  return $libraries;
+}
+
+/**
+ * Implements hook_layout_alter().
+ */
+function breezy_layouts_layout_alter(&$definitions) {
+  // Load the configuration settings.
+  $configuration_settings = \Drupal::config('breezy_layouts.settings');
+
+  $cdn_library = \Drupal::service('library.discovery')->getLibraryByName('breezy_layouts', 'cdn');
+
+  if (!$cdn_library) {
+    return;
+  }
+
+  $layouts = $configuration_settings->get('layouts');
+
+  $active_layouts = array_intersect_key($definitions, array_flip($layouts));
+
+  foreach ($active_layouts as $definition) {
+    $definition->setLibrary('breezy_layouts/cdn');
+  }
+}

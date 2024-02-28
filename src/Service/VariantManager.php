@@ -31,7 +31,8 @@ class VariantManager implements VariantManagerInterface {
    */
   public function getVariantOptionsForLayout(string $layout) : array {
     $variant_options = [];
-    $variants = $this->entityTypeManager->getStorage('breezy_layouts_variant')->loadByProperties(['layout' => $layout]);
+    /** @var \Drupal\breezy_layouts\Entity\BreezyLayoutsVariant[] $variants */
+    $variants = $this->entityTypeManager->getStorage('breezy_layouts_variant')->loadByProperties(['layout' => $layout, 'status' => TRUE]);
     if ($variants) {
       foreach ($variants as $variant) {
         $variant_options[$variant->id()] = $variant->label();

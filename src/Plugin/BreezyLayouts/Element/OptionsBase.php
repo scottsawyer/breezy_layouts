@@ -1,10 +1,9 @@
 <?php
 
-namespace Drupal\breezy_layouts\Plugin\breezy_layouts\Element;
+namespace Drupal\breezy_layouts\Plugin\BreezyLayouts\Element;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\OptGroup;
-use Drupal\Component\Utility\Html;
 use Drupal\breezy_layouts\Utility\BreezyLayoutsElementHelper;
 
 /**

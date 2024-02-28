@@ -6,7 +6,7 @@ use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\breezy_layouts\Annotation\BreezyLayoutsVariantPlugin;
-use Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface;
+use Drupal\breezy_layouts\Plugin\BreezyLayouts\Variant\BreezyLayoutsVariantPluginInterface;
 use Drupal\Core\Layout\LayoutPluginManagerInterface;
 use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 
@@ -38,7 +38,7 @@ class BreezyLayoutsVariantPluginManager extends DefaultPluginManager implements 
    *   The layout plugin manager.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, LayoutPluginManagerInterface $layout_plugin_manager) {
-    parent::__construct('Plugin/breezy_layouts/Variant', $namespaces, $module_handler, 'Drupal\breezy_layouts\Plugin\breezy_layouts\Variant\BreezyLayoutsVariantPluginInterface', 'Drupal\breezy_layouts\Annotation\BreezyLayoutsVariantPlugin');
+    parent::__construct('Plugin/BreezyLayouts/Variant', $namespaces, $module_handler, 'Drupal\breezy_layouts\Plugin\BreezyLayouts\Variant\BreezyLayoutsVariantPluginInterface', 'Drupal\breezy_layouts\Annotation\BreezyLayoutsVariantPlugin');
     $this->setCacheBackend($cache_backend, 'breezy_layouts_variant_plugin');
     $this->alterInfo('breezy_layouts_variant_plugin');
     $this->layoutPluginManager = $layout_plugin_manager;
