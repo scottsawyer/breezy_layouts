@@ -217,6 +217,13 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
   /**
    * {@inheritdoc}
    */
+  public function hasUi() {
+    return $this->pluginDefinition['ui'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function initialize(array &$element) {
     // Set element options.
     // @todo Allow for creating options.
@@ -382,8 +389,14 @@ class BreezyLayoutsElementBase extends PluginBase implements BreezyLayoutsElemen
       '#default_value' => $form_state->getValue('title') ?? '',
     ];
 
+    $form['element']['required'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Required'),
+      '#default_value' => $form_state->getValue('required') ?? FALSE,
+    ];
+
     // Placeholder elements with #options.
-    // @see \Drupal\webform\Plugin\WebformElement\OptionsBase::form
+    // @see \Drupal\breezy_layouts\Plugin\BreezyLayouts\Element\OptionsBase::form
     $form['options'] = [];
 
 

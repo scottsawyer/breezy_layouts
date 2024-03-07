@@ -77,7 +77,6 @@
     // Insert the HTML.
     this.insert(ajax, response, status);
 
-    console.log('breezylayoutsInsert');
     // Add element.
     if (addElement) {
       var addSelector = (addElement === '_root_')

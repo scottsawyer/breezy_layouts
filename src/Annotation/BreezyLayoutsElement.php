@@ -50,4 +50,11 @@ class BreezyLayoutsElement extends Plugin {
    */
   public $container = FALSE;
 
+  /**
+   * Element has UI.
+   *
+   * @var bool
+   */
+  public $ui = FALSE;
+
 }

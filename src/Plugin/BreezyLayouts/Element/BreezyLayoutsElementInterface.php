@@ -174,4 +174,14 @@ interface BreezyLayoutsElementInterface extends ConfigurableInterface, Container
    */
   public function hasMultipleValues(array $element);
 
+  /**
+   * If the form has a visible form widget.
+   *
+   * Used to show / hide form containers.
+   *
+   * @return bool
+   *   TRUE if the element has a visible widget.
+   */
+  public function hasUi();
+
 }

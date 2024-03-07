@@ -76,7 +76,7 @@ trait BreezyLayoutsEntityAjaxFormTrait {
     $entity_type = $entity->getEntityTypeId();
     $entity_id = $entity->id();
 
-    // Must complete reload the entity to make sure all changes are reflected.
+    // Must completely reload the entity to make sure all changes are reflected.
     $entity_storage = $this->entityTypeManager->getStorage($entity_type);
     $entity_storage->resetCache([$entity_id]);
     $entity = $entity_storage->load($entity_id);

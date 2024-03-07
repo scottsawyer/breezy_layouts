@@ -13,6 +13,7 @@ use Drupal\Core\Form\FormStateInterface;
  *   description = @Translation("Provides radio buttons element."),
  *   hidden = FALSE,
  *   multiple = FALSE,
+ *   ui = TRUE,
  * )
  */
 class Radios extends OptionsBase {

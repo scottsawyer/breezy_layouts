@@ -2,27 +2,27 @@
 
 namespace Drupal\breezy_layouts\Plugin\BreezyLayouts\Variant;
 
+use Drupal\breakpoint\BreakpointManagerInterface;
 use Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface;
 use Drupal\breezy_layouts\Utility\BreezyLayoutsBreakpointHelper;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\breakpoint\BreakpointManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides a Breezy Layouts One Column Layout Variant plugin.
+ * Provides a Breezy Layouts Two Column Layout Variant plugin.
  *
  * @BreezyLayoutsVariantPlugin(
- *   id = "breezy_one_column",
- *   label = @Translation("Breezy one column"),
- *   description = @Translation("Provides a variant plugin for Breezy one
+ *   id = "breezy_two_column",
+ *   label = @Translation("Breezy two column"),
+ *   description = @Translation("Provides a variant plugin for Breezy two
  *   column layout"),
- *   layout = "breezy-one-column",
+ *   layout = "breezy-two-column",
  *   container = TRUE,
  *   wrapper = TRUE,
  * )
  */
-class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase implements BreezyLayoutsVariantPluginInterface {
+class BreezyLayoutsTwoColumn extends BreezyLayoutsVariantPluginBase implements BreezyLayoutsVariantPluginInterface {
 
   /**
    * Drupal\breakpoint\BreakpointManagerInterface definition.
@@ -94,10 +94,11 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase implements B
    */
   public function defaultConfiguration() {
     return [
-      'breakpoint_group' => '',
-      'container' => [],
-      'wrapper' => [],
-      'main' => [],
+        'breakpoint_group' => '',
+        'container' => [],
+        'wrapper' => [],
+        'left' => [],
+        'right' => [],
       ] + parent::defaultConfiguration();
   }
 
@@ -201,6 +202,7 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase implements B
         ];
         // Parent key.
         $parent_array = [
+          //'plugin_configuration',
           'breakpoints',
           $breakpoint_name,
           'wrapper',
@@ -212,9 +214,9 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase implements B
 
         $form['breakpoints'][$breakpoint_name]['wrapper']['add_property'] = $this->addPropertyLink($variant, $parent_array);
 
-        $form['breakpoints'][$breakpoint_name]['main'] = [
+        $form['breakpoints'][$breakpoint_name]['left'] = [
           '#type' => 'fieldset',
-          '#title' => $this->t('Main region'),
+          '#title' => $this->t('Left region'),
           '#states' => [
             'visible' => [
               'input[name="plugin_configuration[breakpoints][' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
@@ -226,13 +228,35 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase implements B
         $parent_array = [
           'breakpoints',
           $breakpoint_name,
-          'main',
+          'left',
           'properties',
         ];
         $properties = $this->getProperties($parent_array);
-        $form['breakpoints'][$breakpoint_name]['main']['properties'] = $this->buildPropertiesTable($parent_array, $properties);
+        $form['breakpoints'][$breakpoint_name]['left']['properties'] = $this->buildPropertiesTable($parent_array, $properties);
 
-        $form['breakpoints'][$breakpoint_name]['main']['add_property'] = $this->addPropertyLink($variant, $parent_array);
+        $form['breakpoints'][$breakpoint_name]['left']['add_property'] = $this->addPropertyLink($variant, $parent_array);
+
+        $form['breakpoints'][$breakpoint_name]['right'] = [
+          '#type' => 'fieldset',
+          '#title' => $this->t('Right region'),
+          '#states' => [
+            'visible' => [
+              'input[name="plugin_configuration[breakpoints][' . $breakpoint_name . '][enabled]"]' => ['checked' => TRUE],
+            ],
+          ],
+        ];
+
+        // Parent key.
+        $parent_array = [
+          'breakpoints',
+          $breakpoint_name,
+          'right',
+          'properties',
+        ];
+        $properties = $this->getProperties($parent_array);
+        $form['breakpoints'][$breakpoint_name]['right']['properties'] = $this->buildPropertiesTable($parent_array, $properties);
+
+        $form['breakpoints'][$breakpoint_name]['right']['add_property'] = $this->addPropertyLink($variant, $parent_array);
 
       }
     }
@@ -255,7 +279,6 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase implements B
    * {@inheritdoc}
    */
   public function layoutForm(array $form, FormStateInterface $form_state) {
-    // Settings from layout form input.
     $default_settings = $form_state->get('default_settings');
     $breakpoint_group = $this->configuration['breakpoint_group'];
     $breakpoint_groups_breakpoints = $this->breakpointManager->getBreakpointsByGroup($breakpoint_group);
@@ -281,16 +304,19 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase implements B
               '#type' => 'container',
               '#title' => $breakpoint_groups_breakpoints[$breakpoint_name_converted]->getLabel(),
             ];
+
             $breakpoint_has_ui = FALSE;
             $prefix = $this->getPrefixForBreakpoint($breakpoint_name);
 
             // Container.
             if (isset($breakpoint_settings['container']['properties']) && !empty($breakpoint_settings['container']['properties'])) {
+
               $form['breakpoints'][$breakpoint_name]['container'] = [
                 '#type' => 'container',
                 '#title' => $this->t('Container'),
                 '#description' => $this->t('Container settings'),
               ];
+
               $container_has_ui = FALSE;
               foreach ($breakpoint_settings['container']['properties'] as $property_name => $property_values) {
                 $property = $property_values;
@@ -298,10 +324,12 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase implements B
                 $default_value = NULL;
                 if ($this->elementHasUi($property)) {
                   $container_has_ui = TRUE;
+                  // Only set the default value if the element has a UI.
                   if (isset($default_settings['breakpoints'][$breakpoint_name]['container'][$property_name])) {
                     $default_value = $default_settings['breakpoints'][$breakpoint_name]['container'][$property_name];
                   }
                 }
+
                 $form['breakpoints'][$breakpoint_name]['container'][$property_name] = $this->buildFormElement($element, $prefix, $default_value);
               }
 
@@ -332,6 +360,7 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase implements B
                       $default_value = $default_settings['breakpoints'][$breakpoint_name]['wrapper'][$property_name];
                     }
                   }
+
                   $form['breakpoints'][$breakpoint_name]['wrapper'][$property_name] = $this->buildFormElement($element, $prefix, $default_value);
                 }
                 if ($container_has_ui) {
@@ -343,30 +372,60 @@ class BreezyLayoutsOneColumn extends BreezyLayoutsVariantPluginBase implements B
             }
 
             // Regions.
-            if (isset($breakpoint_settings['main']['properties']) && !empty($breakpoint_settings['main']['properties'])) {
-              $form['breakpoints'][$breakpoint_name]['main'] = [
+            if (isset($breakpoint_settings['left']['properties']) && !empty($breakpoint_settings['left']['properties'])) {
+              $form['breakpoints'][$breakpoint_name]['left'] = [
                 '#type' => 'container',
-                '#title' => $this->t('Main'),
-                '#description' => $this->t('Main settings'),
+                '#title' => $this->t('Left'),
+                '#description' => $this->t('Left settings'),
               ];
               $container_has_ui = FALSE;
-              foreach ($breakpoint_settings['main']['properties'] as $property_name => $property_values) {
+              foreach ($breakpoint_settings['left']['properties'] as $property_name => $property_values) {
                 if (isset($property_values['element']) && !empty($property_values['element'])) {
                   $property = $property_values;
                   $element = $property_values['element'];
                   $default_value = NULL;
                   if ($this->elementHasUi($property)) {
                     $container_has_ui = TRUE;
-                    if (isset($default_settings['breakpoints'][$breakpoint_name]['main'][$property_name])) {
-                      $default_value = $default_settings['breakpoints'][$breakpoint_name]['main'][$property_name];
+
+                    if (isset($default_settings['breakpoints'][$breakpoint_name]['left'][$property_name])) {
+                      $default_value = $default_settings['breakpoints'][$breakpoint_name]['left'][$property_name];
                     }
                   }
-                  $form['breakpoints'][$breakpoint_name]['main'][$property_name] = $this->buildFormElement($element, $prefix, $default_value);
+
+                  $form['breakpoints'][$breakpoint_name]['left'][$property_name] = $this->buildFormElement($element, $prefix, $default_value);
                 }
                 if ($container_has_ui) {
                   // If there are any elements with a UI, make the container a fieldset.
                   $breakpoint_has_ui = TRUE;
-                  $form['breakpoints'][$breakpoint_name]['wrapper']['#type'] = 'fieldset';
+                  $form['breakpoints'][$breakpoint_name]['left']['#type'] = 'fieldset';
+                }
+              }
+            }
+
+            if (isset($breakpoint_settings['right']['properties']) && !empty($breakpoint_settings['right']['properties'])) {
+              $form['breakpoints'][$breakpoint_name]['right'] = [
+                '#type' => 'container',
+                '#title' => $this->t('Right'),
+                '#description' => $this->t('Right settings'),
+              ];
+              $container_has_ui = FALSE;
+              foreach ($breakpoint_settings['right']['properties'] as $property_name => $property_values) {
+                if (isset($property_values['element']) && !empty($property_values['element'])) {
+                  $property = $property_values;
+                  $element = $property_values['element'];
+                  $default_value = NULL;
+                  if ($this->elementHasUi($property)) {
+                    $container_has_ui = TRUE;
+                    if (isset($default_settings['breakpoints'][$breakpoint_name]['right'][$property_name])) {
+                      $default_value = $default_settings['breakpoints'][$breakpoint_name]['right'][$property_name];
+                    }
+                  }
+                  $form['breakpoints'][$breakpoint_name]['right'][$property_name] = $this->buildFormElement($element, $prefix, $default_value);
+                }
+                if ($container_has_ui) {
+                  // If there are any elements with a UI, make the container a fieldset.
+                  $breakpoint_has_ui = TRUE;
+                  $form['breakpoints'][$breakpoint_name]['right']['#type'] = 'fieldset';
                 }
               }
             }

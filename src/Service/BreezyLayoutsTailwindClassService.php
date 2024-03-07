@@ -16,6 +16,11 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
    */
   public function getPropertyMap() : array {
     $property_map = [
+      'display' => [
+        'label' => 'Display',
+        'css_property' => 'display',
+        'method' => 'getDisplay',
+      ],
       'padding' => [
         'label' => 'Padding',
         'css_property' => 'padding',
@@ -36,6 +41,25 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
         'css_property' => 'flex-basis',
         'method' => 'getFlexBasis',
       ],
+      'flex_wrap' => [
+        'label' => 'Flex wrap',
+        'css_property' => 'flex-wrap',
+        'method' => 'getFlexWrap',
+      ],
+      'flex' => [
+        'label' => 'Flex',
+        'css_property' => 'flex',
+        'method' => 'getFlex',
+      ],
+      'flex_grow' => [
+        'label' => 'Flex grow',
+        'css_property' => 'flex-grow',
+        'method' => 'getFlexGrow',
+      ],
+      'flex_shrink' => [
+        'label' => 'Flex shrink',
+        'css_property' => 'flex-shrink',
+      ],
       'gap' => [
         'label' => 'Gap',
         'css_property' => 'gap',
@@ -45,6 +69,41 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
         'label' => 'Order',
         'css_property' => 'order',
         'method' => 'getOrder',
+      ],
+      'grid_template_columns' => [
+        'label' => 'Grid template columns',
+        'css_property' => 'grid-template-columns',
+        'method' => 'gridTemplateColumns',
+      ],
+      'grid_columns_start_stop' => [
+        'label' => 'Grid columns start / stop',
+        'css_property' => 'grid-columns-start-stop',
+        'method' => 'getGridColumnStartEnd',
+      ],
+      'grid_template_rows' => [
+        'label' => 'Grid template rows',
+        'css_property' => 'grid-template-rows',
+        'method' => 'getGridTemplateRows',
+      ],
+      'grid_rows_start_stop' => [
+        'label' => 'Grid rows start / stop',
+        'css_property' => 'grid-rows-start-stop',
+        'method' => 'getGridRowStartStop',
+      ],
+      'grid_auto_flow' => [
+        'label' => 'Grid auto flow',
+        'css_property' => 'grid-row-auto-flow',
+        'method' => 'getGridAutoFlow',
+      ],
+      'grid_auto_columns' => [
+        'label' => 'Grid auto columns',
+        'css_property' => 'grid-auto-columns',
+        'method' => 'getGridAutoColumns',
+      ],
+      'grid_auto_rows' => [
+        'label' => 'Grid auto rows',
+        'css_property' => 'grid-auto-rows',
+        'method' => 'getGridAutoRows',
       ],
       'justify_content' => [
         'label' => 'Justify content',
@@ -58,6 +117,19 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
       ],
     ];
     return $property_map;
+  }
+
+  /**
+   * Get Display values.
+   *
+   * @return array
+   *   An array of "display" values.
+   */
+  protected function getDisplay() {
+    $displays = [
+      "block","inline-block","inline","flex","inline-flex","table","inline-table","table-caption","table-cell","table-column","table-column-group","table-footer-group","table-header-group","table-row-group","table-row","flow-root","grid","inline-grid","contents","list-item","hidden",
+    ];
+    return $displays;
   }
 
   /**
@@ -186,6 +258,58 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
   }
 
   /**
+   * Get Flex Wrap values.
+   *
+   * @return array
+   *   An array of 'flex-wrap' values.
+   */
+  protected function getFlexWrap() {
+    $flex_wraps = [
+      "flex-wrap","flex-wrap-reverse","flex-nowrap",
+    ];
+    return $flex_wraps;
+  }
+
+  /**
+   * Get Flex values.
+   *
+   * @return array
+   *   An array of 'flex' values.
+   */
+  protected function getFlex() {
+    $flexes = [
+      "flex-1","flex-auto","flex-initial","flex-none",
+    ];
+    return $flexes;
+  }
+
+  /**
+   * Get Flex Grow values.
+   *
+   * @return array
+   *   An array of 'flex-grow' values.
+   */
+  protected function getFlexGrow() {
+    $grows = [
+      "grow","grow-0",
+    ];
+    return $grows;
+  }
+
+  /**
+   * Get Flex Shrink values.
+   *
+   * @return array
+   *   An array of 'flex-shrink' values.
+   */
+  protected function getFlexShrink() {
+    $shrinks = [
+      "shrink","shrink-0",
+    ];
+    return $shrinks;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function getFlexDirection() {
@@ -204,6 +328,105 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
       "order-10","order-11","order-12","order-first","order-last","order-none",
     ];
     return $order;
+  }
+
+  /**
+   * Get Grid Template Columns values.
+   *
+   * @return array
+   *   An array of 'grid-template-columns' values.
+   */
+  protected function getGridTemplateColumns() {
+    $columns = [
+      "grid-cols-1","grid-cols-2","grid-cols-3","grid-cols-4","grid-cols-5","grid-cols-6","grid-cols-7","grid-cols-8","grid-cols-9",
+      "grid-cols-10","grid-cols-11","grid-cols-12","grid-cols-none",
+    ];
+    return $columns;
+  }
+
+  /**
+   * Get Grid Column Start / End.
+   *
+   * @return array
+   *   An array of 'grid-column state/end' values.
+   */
+  protected function getGridColumnStartEnd() {
+    $columns = [
+      "col-auto","col-span-1","col-span-2","col-span-3","col-span-4","col-span-5","col-span-6","col-span-7","col-span-8","col-span-9",
+      "col-span-10","col-span-11","col-span-12","col-span-full",
+      "col-start-1","col-start-2","col-start-3","col-start-4","col-start-5","col-start-6","col-start-7","col-start-8","col-start-9",
+      "col-start-10","col-start-11","col-start-12","col-start-13","col-start-auto",
+      "col-end-1","col-end-2","col-end-3","col-end-4","col-end-5","col-end-6","col-end-7","col-end-8","col-end-9",
+      "col-end-10","col-end-11","col-end-12","col-end-13","col-end-auto",
+    ];
+    return $columns;
+  }
+
+  /**
+   * Get Grid Template Rows values.
+   *
+   * @return array
+   *   An array of 'grid-template-rows' values.
+   */
+  protected function getGridTemplateRows() {
+    $rows = [
+      "grid-rows-1","grid-rows-2","grid-rows-3","grid-rows-4","grid-rows-5","grid-rows-6","grid-rows-none",
+    ];
+    return $rows;
+  }
+
+  /**
+   * Get Grid Row Start / Stop values.
+   *
+   * @return array
+   *   An array of 'grid-row' values.
+   */
+  protected function getGridRowStartStop() {
+    $stops = [
+      "row-auto","row-span-1","row-span-2","row-span-3","row-span-4","row-span-5","row-span-6","row-span-full",
+      "row-start-1","row-start-2","row-start-3","row-start-4","row-start-5","row-start-6","row-start-7","row-start-auto",
+      "row-end-1","row-end-2","row-end-3","row-end-4","row-end-5","row-end-6","row-end-7","row-end-auto",
+    ];
+    return $stops;
+  }
+
+  /**
+   * Get Grid Autoflow values.
+   *
+   * @return array
+   *   An array of grid-row-autoflow values.
+   */
+  protected function getGridAutoFlow() {
+    $rows = [
+      "grid-flow-row","grid-flow-col","grid-flow-dense","grid-flow-row-dense","grid-flow-col-dense",
+    ];
+    return $rows;
+  }
+
+  /**
+   * Get Grid Auto Columns values.
+   *
+   * @return array
+   *   An array of 'grid-auto-columns' values.
+   */
+  protected function getGridAutoColumns() {
+    $columns = [
+      "auto-cols-auto","auto-cols-min","auto-cols-max","auto-cols-fr",
+    ];
+    return $columns;
+  }
+
+  /**
+   * Get Grid Auto Rows values.
+   *
+   * @return array
+   *   An array of 'grid-auto-rows' values.
+   */
+  protected function getGridAutoRows() {
+    $rows = [
+      "auto-rows-auto","auto-rows-min","auto-rows-max","auto-rows-fr",
+    ];
+    return $rows;
   }
 
   /**

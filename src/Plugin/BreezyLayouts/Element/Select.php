@@ -13,6 +13,7 @@ use Drupal\Core\Form\FormStateInterface;
  *   description = @Translation("Provides a select element."),
  *   hidden = FALSE,
  *   multiple = FALSE,
+ *   ui = TRUE,
  * )
  */
 class Select extends OptionsBase {

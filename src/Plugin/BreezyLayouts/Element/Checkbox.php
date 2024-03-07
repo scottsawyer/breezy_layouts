@@ -11,6 +11,8 @@ use Drupal\Core\Form\FormStateInterface;
  *   id = "checkbox",
  *   label = @Translation("Checkbox"),
  *   description = @Translation("Provides a form element for a single checkbox"),
+ *   hidden = TRUE,
+ *   ui = TRUE,
  * )
  */
 class Checkbox extends BreezyLayoutsElementBase {

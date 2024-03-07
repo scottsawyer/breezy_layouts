@@ -280,19 +280,6 @@ class BreezyLayoutsMultiple extends FormElement {
         '#name' => $table_id . '_add',
       ];
       $max = ($element['#cardinality']) ? $element['#cardinality'] - $number_of_items : 100;
-      /*
-      $element['add']['more_items'] = [
-        '#type' => 'number',
-        '#title' => $element['#add_more_button_label'] . ' ' . $element['#add_more_input_label'],
-        '#title_display' => 'invisible',
-        '#min' => 1,
-        '#max' => $max,
-        '#default_value' => $element['#add_more_items'],
-        '#field_suffix' => $element['#add_more_input_label'],
-        '#error_no_message' => TRUE,
-        '#access' => $element['#add_more_input'],
-      ];
-      /**/
     }
 
     //$element['#attached']['library'][] = 'webform/webform.element.multiple';
@@ -858,7 +845,6 @@ class BreezyLayoutsMultiple extends FormElement {
    *   The current state of the form.
    */
   public static function removeItemSubmit(array &$form, FormStateInterface $form_state) {
-    $logger = \Drupal::logger('removeItemSubmit');
     $button = $form_state->getTriggeringElement();
     $element = NestedArray::getValue($form, array_slice($button['#array_parents'], 0, -4));
     $values = $element['items']['#value'];
@@ -869,10 +855,8 @@ class BreezyLayoutsMultiple extends FormElement {
 
     // Remove one item from the 'number of items'.
     $number_of_items_storage_key = static::getStorageKey($element, 'number_of_items');
-    $logger->notice('$number_of_items_storage_key: ' . $number_of_items_storage_key);
     $number_of_items = $form_state->get($number_of_items_storage_key);
-    $logger->notice('$number_of_items: ' . $number_of_items);
-    $logger->notice('$element[#min_items]: ' . $element['#min_items']);
+
     // Never allow the number of items to be less than #min_items.
     if ($number_of_items > $element['#min_items']) {
       $form_state->set($number_of_items_storage_key, $number_of_items - 1);
@@ -979,7 +963,6 @@ class BreezyLayoutsMultiple extends FormElement {
    *   Throws unique key required validation error message as an exception.
    */
   public static function convertValuesToItems(array $element, array $values = []) {
-    $logger = \Drupal::logger('convertValuesToItems');
     // Sort the item values.
     if ($element['#sorting']) {
       // @todo Add sorting.
@@ -988,7 +971,6 @@ class BreezyLayoutsMultiple extends FormElement {
 
     // Now build the associative array of items.
     $items = [];
-    $logger->warning('$values: <pre>' . print_r($values, TRUE) . '</pre>');
     foreach ($values as $value) {
       $item = static::convertValueToItem($value);
 
@@ -1002,7 +984,6 @@ class BreezyLayoutsMultiple extends FormElement {
         $key_name = $element['#key'];
         $key_value = $item[$key_name];
         unset($item[$key_name]);
-        $logger->warning('$key_name: ' . $key_name . '; $key_value: <pre>' . print_r($key_value, TRUE) . '</pre> $item: <pre>' . print_r($item, TRUE) . '</pre>');
         $items[$key_value[$key_name]] = $item;
       }
       else {

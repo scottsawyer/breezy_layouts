@@ -13,6 +13,7 @@ use Drupal\Core\Form\FormStateInterface;
  *   description = @Translation("Provides checkboxes element."),
  *   hidden = FALSE,
  *   multiple = TRUE,
+ *   ui = TRUE,
  * )
  */
 class Checkboxes extends OptionsBase {

@@ -13,6 +13,7 @@ use Drupal\Core\Form\FormStateInterface;
  *   description = @Translation("Provides a hidden element."),
  *   hidden = FALSE,
  *   multiple = FALSE,
+ *   ui = FALSE,
  * )
  */
 class Hidden extends BreezyLayoutsElementBase implements BreezyLayoutsElementInterface {
@@ -33,6 +34,8 @@ class Hidden extends BreezyLayoutsElementBase implements BreezyLayoutsElementInt
    */
   public function form(array $form, FormStateInterface $form_state) {
     $form = parent::form($form, $form_state);
+
+    unset($form['element']['required']);
 
     $form['element']['default_value'] = [
       '#type' => 'breezy_layouts_property_select',

@@ -209,7 +209,6 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
    * {@inheritdoc}
    */
   protected function copyFormValuesToEntity(EntityInterface $entity, array $form, FormStateInterface $form_state) {
-
     $values = $form_state->getValues();
     if ($this->entity instanceof EntityWithPluginCollectionInterface) {
       // Do not manually update values represented by plugin collections.
@@ -232,7 +231,6 @@ class BreezyLayoutsVariantForm extends EntityForm implements ContainerInjectionI
       $plugin_configuration = $entity->getPluginConfiguration();
       // @todo Merge $form_state with $plugin_configuration.
       // @see BreezyLayoutsVariantPluginBase::mergeFormState.
-
       $config_values = [];
       if (isset($plugin_configuration['breakpoints']) && $breakpoints = $plugin_configuration['breakpoints']) {
         foreach ($breakpoints as $breakpoint_name => $breakpoint_settings) {

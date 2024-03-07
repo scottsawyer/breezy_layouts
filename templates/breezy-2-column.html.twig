@@ -1,33 +1,29 @@
-{% set container = settings.wrapper_container %}
-{% set sizes = settings.sizes %}
-{% set offsets = settings.offsets %}
-{% set orders = settings.orders %}
+{% set container = FALSE %}
+{% set container_classes = [] %}
+{% set wrapper_classes = [] %}
 {% set left_classes = [] %}
-{% for key, val in sizes.left %}
-  {% set left_classes = left_classes|merge([val]) %}
-{% endfor %}
-{% for key, val in offsets.left %}
-  {% set left_classes = left_classes|merge([key ~ '-offset-' ~ val]) %}
-{% endfor %}
-{% for key, val in orders.left %}
-  {% set left_classes = left_classes|merge([val]) %}
+{% set right_classes = [] %}
+
+{% for key, val in settings.classes %}
+  {% if key == 'container' %}
+    {% set container = TRUE %}
+    {% set container_classes = container_classes|merge(val) %}
+  {% elseif key == 'wrapper' %}
+    {% set wrapper_classes = wrapper_classes|merge(val) %}
+  {% elseif key == 'left' %}
+    {% set left_classes = left_classes|merge(val) %}
+  {% elseif key == 'right' %}
+    {% set right_classes = right_classes|merge(val) %}
+  {% endif %}
 {% endfor %}
 
-{% set right_classes = [] %}
-{% for key, val in sizes.right %}
-  {% set right_classes = right_classes|merge([val]) %}
-{% endfor %}
-{% for key, val in offsets.right %}
-  {% set right_classes = right_classes|merge([key ~ '-offset-' ~ val]) %}
-{% endfor %}
-{% for key, val in orders.right %}
-  {% set right_classes = right_classes|merge([val]) %}
-{% endfor %}
+{% set wrapper_attributes = create_attribute() %}
 
 {% if container == TRUE %}
-<div class="container">
+  {% set container_attributes = create_attribute() %}
+  <div{{ container_attributes.addClass(container_classes).addClass('container') }}>
   {% endif %}
-  <div {{ attributes.addClass('flex', settings.wrapper_classes, settings.wrapper_gutters.x, settings.wrapper_gutters.y) }}>
+  <div{{ wrapper_attributes.addClass(wrapper_classes) }}>
     {% if content.left %}
       <div {{ region_attributes.left.addClass(left_classes) }}>
         {{ content.left }}
@@ -40,5 +36,5 @@
     {% endif %}
   </div>
   {% if container == TRUE %}
-</div>
+  </div>
 {% endif %}

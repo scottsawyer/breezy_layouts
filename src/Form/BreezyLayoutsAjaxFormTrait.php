@@ -141,7 +141,7 @@ trait BreezyLayoutsAjaxFormTrait {
     }
 
     // Add Ajax wrapper with wrapper content bookmark around the form.
-    // @see Drupal.AjaxCommands.prototype.webformScrollTop
+    // @see Drupal.AjaxCommands.prototype.breezylayoutsScrollTop
     $wrapper_id = $this->getWrapperId();
     $wrapper_attributes = [];
     $wrapper_attributes['id'] = $wrapper_id;

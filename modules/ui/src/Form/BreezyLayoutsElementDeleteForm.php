@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class BreezyLayoutsElementDeleteForm extends BreezyLayoutsDeleteFormBase {
 
   /**
-   * The webform element manager.
+   * The BreezyLayoutsElementPluginManager.
    *
    * @var \Drupal\breezy_layouts\Service\BreezyLayoutsElementPluginManagerInterface
    */

@@ -1,88 +1,64 @@
-{% set container = settings.wrapper_container %}
-{% set sizes = settings.sizes %}
-{% set offsets = settings.offsets %}
-{% set orders = settings.orders %}
+{% set container = FALSE %}
+{% set container_classes = [] %}
+{% set wrapper_classes = [] %}
 {% set leftOuter_classes = [] %}
-{% for key, val in sizes.leftOuter %}
-  {% set leftOuter_classes = leftOuter_classes|merge([val]) %}
-{% endfor %}
-{% for key, val in offsets.leftOuter %}
-  {% set leftOuter_classes = leftOuter_classes|merge([key ~ '-offset-' ~ val]) %}
-{% endfor %}
-{% for key, val in orders.leftOuter %}
-  {% set leftOuter_classes = leftOuter_classes|merge([val]) %}
-{% endfor %}
 {% set leftInner_classes = [] %}
-{% for key, val in sizes.leftInner %}
-  {% set leftInner_classes = leftInner_classes|merge([val]) %}
-{% endfor %}
-{% for key, val in offsets.leftInner %}
-  {% set leftInner_classes = leftInner_classes|merge([key ~ '-offset-' ~ val]) %}
-{% endfor %}
-{% for key, val in orders.leftInner %}
-  {% set leftInner_classes = leftInner_classes|merge([val]) %}
-{% endfor %}
 {% set center_classes = [] %}
-{% for key, val in sizes.center %}
-  {% set center_classes = center_classes|merge([val]) %}
-{% endfor %}
-{% for key, val in offsets.center %}
-  {% set center_classes = center_classes|merge([val]) %}
-{% endfor %}
-{% for key, val in orders.center %}
-  {% set center_classes = center_classes|merge([val]) %}
-{% endfor %}
 {% set rightInner_classes = [] %}
-{% for key, val in sizes.rightInner %}
-  {% set rightInner_classes = rightInner_classes|merge([val]) %}
-{% endfor %}
-{% for key, val in offsets.rightInner %}
-  {% set rightInner_classes = rightInner_classes|merge([key ~ '-offset-' ~ val]) %}
-{% endfor %}
-{% for key, val in orders.rightInner %}
-  {% set rightInner_classes = rightInner_classes|merge([val]) %}
-{% endfor %}
 {% set rightOuter_classes = [] %}
-{% for key, val in sizes.rightOuter %}
-  {% set rightOuter_classes = rightOuter_classes|merge([val]) %}
-{% endfor %}
-{% for key, val in offsets.rightOuter %}
-  {% set rightOuter_classes = rightOuter_classes|merge([key ~ '-offset-' ~ val]) %}
-{% endfor %}
-{% for key, val in orders.rightOuter %}
-  {% set rightOuter_classes = rightOuter_classes|merge([val]) %}
+
+{% for key, val in settings.classes %}
+  {% if key == 'container' %}
+    {% set container = TRUE %}
+    {% set container_classes = container_classes|merge(val) %}
+  {% elseif key == 'wrapper' %}
+    {% set wrapper_classes = wrapper_classes|merge(val) %}
+  {% elseif key == 'left_outer' %}
+    {% set leftOuter_classes = leftOuter_classes|merge(val) %}
+  {% elseif key == 'left_inner' %}
+    {% set leftInner_classes = leftInner_classes|merge(val) %}
+  {% elseif key == 'center' %}
+    {% set center_classes = center_classes|merge(val) %}
+  {% elseif key == 'right_inner' %}
+    {% set rightInner_classes = rightInner_classes|merge(val) %}
+  {% elseif key == 'right_outer' %}
+    {% set rightOuter_classes = rightOuter_classes|merge(val) %}
+  {% endif %}
 {% endfor %}
 
+{% set wrapper_attributes = create_attribute() %}
+
 {% if container == TRUE %}
-<div class="container">
+  {% set container_attributes = create_attribute() %}
+  <div{{ container_attributes.addClass(container_classes).addClass('container') }}>
   {% endif %}
-  <div {{ attributes.addClass('flex', settings.wrapper_classes, settings.wrapper_gutters.x, settings.wrapper_gutters.y) }}>
+    <div{{ wrapper_attributes.addClass(wrapper_classes) }}>
     {% if content.leftOuter %}
-      <div {{ region_attributes.leftOuter.addClass(leftOuter_classes) }}>
+      <div{{ region_attributes.leftOuter.addClass(leftOuter_classes) }}>
         {{ content.leftOuter }}
       </div>
     {% endif %}
     {% if content.leftInner %}
-      <div {{ region_attributes.leftInner.addClass(leftInner_classes) }}>
+      <div{{ region_attributes.leftInner.addClass(leftInner_classes) }}>
         {{ content.leftInner }}
       </div>
     {% endif %}
     {% if content.center %}
-      <div {{ region_attributes.center.addClass(center_classes) }}>
+      <div{{ region_attributes.center.addClass(center_classes) }}>
         {{ content.center }}
       </div>
     {% endif %}
     {% if content.rightInner %}
-      <div {{ region_attributes.rightInner.addClass(rightInner_classes) }}>
+      <div{{ region_attributes.rightInner.addClass(rightInner_classes) }}>
         {{ content.rightInner }}
       </div>
     {% endif %}
     {% if content.rightOuter %}
-      <div {{ region_attributes.rightOuter.addClass(rightOuter_classes) }}>
+      <div{{ region_attributes.rightOuter.addClass(rightOuter_classes) }}>
         {{ content.rightOuter }}
       </div>
     {% endif %}
   </div>
   {% if container == TRUE %}
-</div>
+  </div>
 {% endif %}

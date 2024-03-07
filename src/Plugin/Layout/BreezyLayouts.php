@@ -136,7 +136,6 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
 
     $variant_wrapper_id = 'variant-settings-wrapper';
 
-    $variant = NULL;
     if (isset($input['variant'])) {
       $variant = $input['variant'];
     }
@@ -176,7 +175,7 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
       else {
         $variant_settings = $this->configuration['variant_settings'];
       }
-
+      $form_state->set('variant', $variant_entity);
       $form_state->set('default_settings', $variant_settings);
       $form['variant_settings_wrapper']['variant_settings'] = [
         '#parents' => ['variant_settings'],
@@ -191,18 +190,7 @@ class BreezyLayouts extends LayoutDefault implements ContainerFactoryPluginInter
    * {@inheritdoc}
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-    /*
-    $breakpoints = $this->breakpoints;
-    $regions = $form_state->getValue('regions');
-    foreach ($regions as $region_name) {
-      foreach ($breakpoints as $bp => $breakpoint) {
-        $column_count = $regions[$region_name][$bp]['size'] + $regions[$region_name][$bp]['offset'];
-        if ($column_count > 12) {
-          $form_state->setErrorByName("regions][$region_name][$bp]['size']", $this->t("The total columns, including offsets, can not total more than 12."));
-        }
-      }
-    }
-    /**/
+
   }
 
   /**

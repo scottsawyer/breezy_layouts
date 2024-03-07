@@ -162,7 +162,7 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
     ];
     $form['actions']['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Add element'),
+      '#value' => $this->t('Save element'),
     ];
     return $this->buildDialogForm($form, $form_state);
   }
@@ -258,7 +258,7 @@ abstract class BreezyLayoutsElementFormBase extends FormBase {
    *   Ajax settings.
    *
    * @return array
-   *   The webform with modal dialog support.
+   *   The form with modal dialog support.
    */
   protected function buildDialogForm(array &$form, FormStateInterface $form_state, array $settings = []) {
     return $this->buildAjaxForm($form, $form_state, $settings);
