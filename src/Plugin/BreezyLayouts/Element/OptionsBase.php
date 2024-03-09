@@ -172,20 +172,13 @@ abstract class OptionsBase extends BreezyLayoutsElementBase {
       '#type' => 'breezy_layouts_property_select',
       '#property' => $form_state->get('property'),
     ];
-    /*
-    $row['value'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Option value'),
-      '#required' => TRUE,
-      '#options' => $this->tailwindClasses->getClassOptions($form_state->get('property')),
-    ];
-    /**/
+
     $row['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Option label'),
       '#default_value' => '',
-
     ];
+
     $row['weight'] = [
       '#type' => 'weight',
       '#title' => $this->t('Weight for option'),
@@ -224,7 +217,7 @@ abstract class OptionsBase extends BreezyLayoutsElementBase {
   /**
    * {@inheritdoc}
    */
-  public function prepare(array &$element, WebformSubmissionInterface $webform_submission = NULL) {
+  public function prepare(array &$element) {
     $is_wrapper_fieldset = in_array($element['#type'], ['checkboxes', 'radios']);
     if ($is_wrapper_fieldset) {
       // Issue #2396145: Option #description_display for webform element fieldset
@@ -252,7 +245,7 @@ abstract class OptionsBase extends BreezyLayoutsElementBase {
       }
     }
 
-    parent::prepare($element, $webform_submission);
+    parent::prepare($element);
 
     // Options description display must be set to trigger the description display.
     if ($this->hasProperty('options_description_display') && empty($element['#options_description_display'])) {
@@ -264,24 +257,6 @@ abstract class OptionsBase extends BreezyLayoutsElementBase {
       $element['#options_display'] = $this->getDefaultProperty('options_display');
     }
 
-    // Make sure submitted value is not lost if the element's #options were
-    // altered after the submission was completed.
-    // This only applies to the main webforom element with a #webform_key
-    // and not a webform composite's sub elements.
-    $is_completed = $webform_submission && $webform_submission->isCompleted();
-    $has_default_value = (isset($element['#default_value']) && $element['#default_value'] !== '' && $element['#default_value'] !== NULL);
-    if ($is_completed && $has_default_value && !$this->isOptionsOther() && isset($element['#webform_key'])) {
-      if ($element['#default_value'] === $webform_submission->getElementData($element['#webform_key'])) {
-        $options = OptGroup::flattenOptions($element['#options']);
-        $default_values = (array) $element['#default_value'];
-        foreach ($default_values as $default_value) {
-          if (!isset($options[$default_value])) {
-            $element['#options'][$default_value] = $default_value;
-          }
-        }
-      }
-    }
-
     // If the element is #required and the #default_value is an empty string
     // we need to unset the #default_value to prevent the below error.
     // 'An illegal choice has been detected'.
@@ -289,17 +264,6 @@ abstract class OptionsBase extends BreezyLayoutsElementBase {
       unset($element['#default_value']);
     }
 
-    // Process custom options properties.
-    if ($this->hasProperty('options__properties')) {
-      // Unset #options__properties that are not array to prevent errors.
-      if (isset($element['#options__properties'])
-        && !is_array($element['#options__properties'])) {
-        unset($element['#options__properties']);
-      }
-      $this->setElementDefaultCallback($element, 'process');
-      $element['#process'][] = [get_class($this), 'processOptionsProperties'];
-    }
   }
-
 
 }

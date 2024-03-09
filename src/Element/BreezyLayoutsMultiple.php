@@ -282,8 +282,6 @@ class BreezyLayoutsMultiple extends FormElement {
       $max = ($element['#cardinality']) ? $element['#cardinality'] - $number_of_items : 100;
     }
 
-    //$element['#attached']['library'][] = 'webform/webform.element.multiple';
-
     return $element;
 
   }

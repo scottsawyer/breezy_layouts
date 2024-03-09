@@ -2,7 +2,15 @@
 
 A configurable set of layouts with utility classes in mind, particularly [TailwindCSS](https://tailwindcss.com/).
 
-The main idea of this module is to use Tailwind utility classes to create layout variants.  It includes a form builder for creating fields that will inject Tailwind classes into layouts.  Using the form, a site builder can give editors as much or as little control over the variants as desired.
+The main idea of this module is to give editors curated control over layouts using utility classes without having any knowledge of CSS.
+
+It does this by allowing site builders to select which classes apply to layouts, and which classes the editor can select.  By creating layout variants, site builders can give editors as much or as little control over the layouts as desired.
+
+The main differences between this module and the excellent [Layout Builder Styles](https://www.drupal.org/project/layout_builder_styles):
+* Layout Builder Styles works on Layouts, Sections, and Blocks.  Breezy Layouts only works on Layouts.
+* Layout Builder Styles is unopinionated as to what CSS classes are added.  Breezy Layouts only works with TailwindCSS (see roadmap).
+* Breezy Layouts has hidden fields so the site builder can enforce classes to be applied via layout variants.
+* Breezy Layouts organizes variants around breakpoints and CSS properties for an intuitive interface.
 
 Special thanks to the [Webform team](https://www.drupal.org/project/webform), this module borrows heavily from Webform for the form builder.
 
@@ -26,6 +34,8 @@ Further, you could have variants for full width vs contained.  It just depends o
 Additionally, you could give your editors the ability to select any number of options for the variant by adding fields.
 
 When the editor selects a layout from the configured variants.
+
+
 
 ## Limitations
 
@@ -92,8 +102,6 @@ The result of a variant with no container.
   </div>
 </div>
 ```
-
-
 
 > **NOTE** Breezy Layouts does not support the advanced Container properties.  If there are any properties added to the Container in any breakpoint, the Container will be rendered with the `container` class.  [Read more about Tailwind containers.](https://tailwindcss.com/docs/container)
 
@@ -165,6 +173,7 @@ You will repeat this process for each layout for which you would like to create 
 
 Once you have one or more enabled variants for a layout, whenever that layout is selected (using Layouts Builder, Layout Paragraphs, etc), the variants will appear as options.  Choosing the variant will expose the configured field, if there are any fields with a UI (not hidden fields).
 
+## Roadmap
 
-
-
+Currently, the TailwindCSS classes are hardcoded in the BreezyLayoutsTailwindClassService.  The goal would be to move the utility class management into an external module.  Then I can make the classes plugins, and enable developers to add their own utility classes.
+As the list of supported properties grows, the property selection form will get unmanageble.  Currently, there is a radio button to select the property.  This will be changed to an autocomplete to support a much larger number of properties.

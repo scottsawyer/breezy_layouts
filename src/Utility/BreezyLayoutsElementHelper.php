@@ -38,11 +38,6 @@ class BreezyLayoutsElementHelper {
     '#submit' => '#submit',
     '#validate' => '#validate',
     '#value_callback' => '#value_callback',
-    // Element specific callbacks.
-    '#file_value_callbacks' => '#file_value_callbacks',
-    '#date_date_callbacks' => '#date_date_callbacks',
-    '#date_time_callbacks' => '#date_time_callbacks',
-    '#captcha_validate' => '#captcha_validate',
   ];
 
   /**
