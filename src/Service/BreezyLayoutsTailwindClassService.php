@@ -462,19 +462,12 @@ class BreezyLayoutsTailwindClassService implements BreezyLayoutsTailwindClassSer
     $class_options = [];
     $classes = [];
     $map = $this->getPropertyMap();
-    /*
-    $selected_map = array_filter( $map, function ($a) use($property) {
-      return $a['css_property'] == $property;
-    });
-    /**/
     $selected_map = [];
     if (isset($map[$property])) {
       $selected_map = $map[$property];
     }
 
     if (!empty($selected_map)) {
-      //$properties = reset($selected_map);
-      //$method = $properties['method'];
       $method = $selected_map['method'];
       $classes = $this->$method();
     }

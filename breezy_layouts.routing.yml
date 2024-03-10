@@ -1,0 +1,7 @@
+breezy_layouts.property_controller:
+  path: '/breezy-layouts/property-autocomplete'
+  defaults:
+    _controller: '\Drupal\breezy_layouts\Controller\BreezyLayoutsPropertyController::handleAutocomplete'
+    _format: json
+  requirements:
+    _access: 'TRUE'

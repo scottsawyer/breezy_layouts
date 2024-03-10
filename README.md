@@ -35,8 +35,6 @@ Additionally, you could give your editors the ability to select any number of op
 
 When the editor selects a layout from the configured variants.
 
-
-
 ## Limitations
 
 This module does not currently support every Tailwind class, nor does it support some of the more advanced features such as class chaining or arbitrary styles.
@@ -176,4 +174,5 @@ Once you have one or more enabled variants for a layout, whenever that layout is
 ## Roadmap
 
 Currently, the TailwindCSS classes are hardcoded in the BreezyLayoutsTailwindClassService.  The goal would be to move the utility class management into an external module.  Then I can make the classes plugins, and enable developers to add their own utility classes.
+
 As the list of supported properties grows, the property selection form will get unmanageble.  Currently, there is a radio button to select the property.  This will be changed to an autocomplete to support a much larger number of properties.

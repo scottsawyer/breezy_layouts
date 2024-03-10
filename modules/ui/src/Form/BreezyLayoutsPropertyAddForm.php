@@ -73,29 +73,33 @@ class BreezyLayoutsPropertyAddForm extends FormBase {
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
     $form['#attached']['library'][] = 'breezy_layouts/breezy_layouts.ajax';
 
-    $options = $this->tailwindClasses->getPropertyOptions();
     $input = $form_state->getUserInput();
     $property_wrapper_id = 'property-wrapper';
 
     $form['#attributes'] = [
       'id' => $property_wrapper_id,
     ];
+
     $form['property_type'] = [
-      '#type' => 'radios',
+      '#type' => 'textfield',
       '#title' => $this->t('Choose property'),
-      '#options' => $options,
+      '#description' => $this->t('Enter a CSS property name. Only one property may be added. Example: margin, padding, display.'),
       '#default_value' => $form_state->getValue('property_type') ?? '',
       '#required' => TRUE,
       '#ajax' => [
         'callback' => '::changePropertyType',
         'wrapper' => $property_wrapper_id,
+        'event' => 'autocompleteclose',
       ],
+      '#autocomplete_route_name' => 'breezy_layouts.property_controller',
     ];
 
     $property_type = $form_state->get('property_type');
     if ($form_state->getValue('property_type')) {
       $property_type = $form_state->getValue('property_type');
     }
+
+
 
     if ($property_type) {
       $form['elements'] = [
@@ -162,6 +166,19 @@ class BreezyLayoutsPropertyAddForm extends FormBase {
   /**
    * {@inheritdoc}
    */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+
+    $property_type = $form_state->getValue('property_type');
+    $properties = $this->tailwindClasses->getPropertyOptions();
+    if (!array_key_exists($property_type, $properties)) {
+      $form_state->setErrorByName('property_type', 'Invalid property type.');
+    }
+    parent::validateForm($form, $form_state);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $form_state->clearErrors();
     $form_state->setRebuild();
@@ -218,6 +235,23 @@ class BreezyLayoutsPropertyAddForm extends FormBase {
    */
   public function changePropertyType(array &$form, FormStateInterface $form_state) {
     return $form;
+  }
+
+  /**
+   * Checks if this a property is valid.
+   *
+   * @param string $property_name
+   *   The property name.
+   *
+   * @return bool
+   *   True is the property name exists.
+   */
+  protected function isValidProperty(string $property_name = NULL) {
+    if (!$property_name || empty($property_name)) {
+      return FALSE;
+    }
+    $properties = $this->tailwindClasses->getPropertyOptions();
+    return array_key_exists($property_name, $properties);
   }
 
 }
